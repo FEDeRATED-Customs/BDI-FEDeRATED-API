@@ -34,18 +34,10 @@ import nl.tno.federated.api.graphdb.GraphDBSPARQLClient
 import org.springframework.stereotype.Service
 
 @Service
-class GraphDBEventQueryService(private val graphDBSPARQLClient: GraphDBSPARQLClient)  : EventQueryService {
+class GraphDBEventQueryService(private val graphDBSPARQLClient: GraphDBSPARQLClient)  {
 
     fun executeQuery(eventQuery: EventQuery): String? {
        return  graphDBSPARQLClient.executeSPARQL(eventQuery)
-    }
-
-    override fun findById(id: String): String? {
-        TODO("Not used, using the message history for this due to not having an ID in the graphdb")
-    }
-
-    override fun findAll():List<String> {
-        TODO("Not used, using the message history for this due to not having an ID in the graphdb")
     }
 
 }

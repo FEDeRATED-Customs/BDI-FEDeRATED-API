@@ -59,9 +59,12 @@ class EventTypeService(private val eventTypeRepository: EventTypeRepository) {
         eventTypeRepository.saveAndFlush(copy)
     }
 
-    fun getEventType(eventType: String): EventType? {
-        val entity = eventTypeRepository.findByEventType(eventType)
-        return if(entity == null)  null
-        else EventType(eventType = entity.eventType, rml = entity.rml, shacl = entity.shacl, schemaDefinition = entity.schemaDefinition)
+    fun getEventType(eventType: String): = eventTypeRepository.findByEventType(eventType)?.let {
+        EventType(
+            eventType = it.eventType,
+            rml = it.rml,
+            shacl = it.shacl,
+            schemaDefinition = it.schemaDefinition
+        )
     }
 }

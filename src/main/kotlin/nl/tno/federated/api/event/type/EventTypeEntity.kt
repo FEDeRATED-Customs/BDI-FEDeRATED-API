@@ -42,7 +42,7 @@ data class EventTypeEntity(
     @Column(name = "RML")
     val rml: String,
     @Column(name = "SHACL",nullable = true)
-    val shacl: String?,
+    val shacl: String? = null,
     @Column(name = "SCHEMA_DEFINITION",nullable = true)
     val schemaDefinition: String? = null
 )

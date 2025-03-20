@@ -73,7 +73,6 @@ class OrchestratorController(
     fun getMessageById(@PathVariable("id") id: String): ResponseEntity<JsonNode?> {
         log.info("Get message by ID: {}", id)
         val message = orchestratorService.findMessageById(id) ?: return ResponseEntity.notFound().build()
-        // TODO get the event from the database , and return the complete Enriched Event , containing the json , the rdf, the type and the ID
         return ResponseEntity.ok(message.toJsonNode(objectMapper))
     }
 
@@ -98,11 +97,6 @@ class OrchestratorController(
                     orchestratorService.updateMessageToInvalid(incomingMessage)
                 }
             }
-        /*
-        } catch (dbException: DbActionExecutionException) {
-            log.warn("Unable to save message, A message with id: {} already exists",incomingMessage.messageId)
-            return ResponseEntity("Message with id: ${incomingMessage.messageId} allready exists", HttpStatus.CONFLICT)
-        */
         } catch (e: Exception) {
             log.warn("Not processing message {} because: {}",incomingMessage.messageId,e.message )
             return ResponseEntity(HttpStatus.BAD_REQUEST)
