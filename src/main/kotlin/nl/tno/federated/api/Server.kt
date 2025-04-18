@@ -32,6 +32,9 @@ package nl.tno.federated.api
 import nl.tno.federated.api.event.type.EventTypeMappingConfig
 import nl.tno.federated.api.graphdb.config.GraphDBConfig
 import nl.tno.federated.api.orchestrator.config.OrchestratorConfig
+import nl.tno.federated.api.security.user.UserEntity
+import nl.tno.federated.api.security.user.UserRepository
+import org.springframework.boot.CommandLineRunner
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -58,6 +61,7 @@ class Server {
         eventMulticaster.setTaskExecutor(SimpleAsyncTaskExecutor())
         return eventMulticaster
     }
+
 }
 
 /**

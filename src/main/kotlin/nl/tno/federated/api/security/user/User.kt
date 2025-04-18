@@ -1,5 +1,5 @@
 // FEDeRATED node
-// 
+//
 // Copyright (c) 2024-2025 Netherlands Organization for Applied Scientific Research TNO
 //
 // This file is part of the FEDeRATED Node API.
@@ -26,37 +26,16 @@
 /**
  *
  */
+package nl.tno.federated.api.security.user
 
-package nl.tno.federated.api.security.apikey
+import jakarta.validation.constraints.NotNull
 
-import jakarta.servlet.http.HttpServletRequest
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.core.env.Environment
-import org.springframework.security.core.Authentication
-import org.springframework.security.core.authority.AuthorityUtils
-import org.springframework.stereotype.Service
-import java.util.*
+data class User (
 
-@Service
-class ApiKeyAuthExtractor(val apiKeyService: APIKeyService) {
+    @NotNull  val username: String,
+    @NotNull  val password: String,
+    @NotNull val roles: String,
+    @NotNull val isEnabled: Boolean
 
-    @Autowired
-    private lateinit var environment: Environment
+)
 
-    fun extract(request: HttpServletRequest): Optional<Authentication> {
-        val headerName = environment.getProperty("federated.node.api.security.xapikey.header")
-        try {
-            val providedKey = request.getHeader(headerName)
-           /* if ("OPTIONS".equals(request.method, ignoreCase = true)) {
-                return Optional.of(ApiKeyAuth(providedKey, AuthorityUtils.createAuthorityList("API_USER")))
-            }*/
-            apiKeyService.findAPIKey(providedKey)?.let {
-                return Optional.of(ApiKeyAuth(providedKey, AuthorityUtils.createAuthorityList(it.roles)))
-            }
-
-            return Optional.empty()
-        } catch (e: Exception ) {
-            return Optional.empty()
-        }
-    }
-}
