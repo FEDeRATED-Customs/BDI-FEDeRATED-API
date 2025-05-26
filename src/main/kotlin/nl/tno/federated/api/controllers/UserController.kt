@@ -66,7 +66,7 @@ class UserController (private val userService: UserService, private val apiKeySe
 
     @PostMapping("/users/{username}")
     fun changeUser(@PathVariable username: String, @Valid @RequestBody user: User) {
-        log.info("Add a new user")
+        log.info("update a user")
         userService.updateUser(username, user)
     }
 

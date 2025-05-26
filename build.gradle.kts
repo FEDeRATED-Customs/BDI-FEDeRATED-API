@@ -58,7 +58,6 @@ dependencies {
     implementation("org.glassfish:jakarta.json:2.0.1")
     implementation("com.github.slugify:slugify:3.0.6")
 
-
     //Tests
     testImplementation("org.testcontainers:junit-jupiter")
     testCompileOnly("junit:junit")

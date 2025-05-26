@@ -95,13 +95,6 @@ class SecurityConfig(private val jpaUserDetailService: JPAUserDetailService,
             }
         }
 
-        //add admin APIKEY if not exists
-        environment.getProperty("federated.node.api.security.xapikey.adminkey")?.let {
-            if (apiKeyService.findAPIKey(it) == null) {
-                apiKeyService.addAPIKey(APIKey(it, Roles.API_ADMIN.role, true))
-            }
-        }
-
         environment.getProperty("federated.node.api.security.xapikey.dokey")?.let {
             if (apiKeyService.findAPIKey(it) == null) {
                 apiKeyService.addAPIKey(APIKey(it, Roles.API_MESSAGE.role, true))
