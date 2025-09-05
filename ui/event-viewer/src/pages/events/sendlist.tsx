@@ -1,5 +1,5 @@
 import {DataGrid, GridColDef} from "@mui/x-data-grid";
-import {DateField, List, useDataGrid,} from "@refinedev/mui";
+import {DateField, List, useDataGrid,ShowButton} from "@refinedev/mui";
 import React from "react";
 
 export const SendEventList = () => {
@@ -49,11 +49,16 @@ export const SendEventList = () => {
           minWidth: 80,
         },
         {
-          field: "message",
-          flex: 1,
-          headerName: "Message",
-          type: "string",
-          renderCell: (params: any) => atob(params.value)
+          field: "actions",
+          headerName: "Actions",
+          display: "flex",
+          renderCell: function render({row}) {
+            return
+                <ShowButton size="small" recordItemId={row.id}/>
+          },
+          align: "center",
+          headerAlign: "center",
+          minWidth: 10,
         }
       ];
     },

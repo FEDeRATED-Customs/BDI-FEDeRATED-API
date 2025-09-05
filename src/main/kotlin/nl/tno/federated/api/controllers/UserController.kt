@@ -84,7 +84,7 @@ class UserController (private val userService: UserService, private val apiKeySe
     }
 
     @GetMapping("/apikeys")
-    fun getAPIKeyss() : ResponseEntity<JsonNode?> {
+    fun getAPIKeys() : ResponseEntity<JsonNode?> {
         log.info("Get all APIKeys")
         return ResponseEntity.ok(apiKeyService.getAPIKeys().toJsonNode(objectMapper))
     }

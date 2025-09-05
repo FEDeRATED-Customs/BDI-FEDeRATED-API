@@ -39,10 +39,10 @@ data class EventTypeEntity(
     var id: Long? = null,
     @Column(name = "EVENT_TYPE")
     val eventType: String,
-    @Column(name = "RML")
+    @Column(name = "RML", columnDefinition = "TEXT")
     val rml: String,
-    @Column(name = "SHACL",nullable = true)
+    @Column(name = "SHACL",nullable = true, columnDefinition = "TEXT")
     val shacl: String? = null,
-    @Column(name = "SCHEMA_DEFINITION",nullable = true)
+    @Column(name = "SCHEMA_DEFINITION",nullable = true, columnDefinition = "TEXT")
     val schemaDefinition: String? = null
 )

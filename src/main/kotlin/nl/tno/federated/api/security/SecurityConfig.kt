@@ -187,7 +187,7 @@ class SecurityConfig(private val jpaUserDetailService: JPAUserDetailService,
                     .requestMatchers("/api/users/**").hasAnyAuthority(Roles.API_ADMIN.role)
                     .requestMatchers("/api/apikeys/**").hasAnyAuthority(Roles.API_ADMIN.role)
                     .requestMatchers("/api/distribution-rules/**").hasAnyAuthority(Roles.API_ADMIN.role)
-                    .requestMatchers("/api/event-types/**").hasAnyAuthority(Roles.API_USER.role,Roles.API_ADMIN.role)
+                    .requestMatchers("/api/event-types/**").hasAnyAuthority(Roles.API_ADMIN.role)
                     .requestMatchers("/api/events/**").hasAnyAuthority(Roles.API_USER.role,Roles.API_ADMIN.role)
                     .requestMatchers("/api/sparql/**").hasAnyAuthority(Roles.API_USER.role,Roles.API_ADMIN.role)
                     .requestMatchers("/api/webhooks/**").hasAnyAuthority(Roles.API_ADMIN.role)

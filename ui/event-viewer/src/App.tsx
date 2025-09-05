@@ -80,12 +80,15 @@ function App() {
                   }>
                     <Route path="/out">
                       <Route index element={<SendEventList/>}/>
+                      <Route path="show/:id" element={<EventShow/>}/>
                     </Route>
                     <Route path="/in">
                       <Route index element={<ReceivedEventList/>}/>
+                      <Route path="show/:id" element={<EventShow/>}/>
                     </Route>
                     <Route path="/failed">
                       <Route index element={<EventList/>}/>
+                      <Route path="show/:id" element={<EventShow/>}/>
                     </Route>
                     <Route path="*" element={<ErrorComponent/>}/>
                   </Route>

@@ -18,18 +18,19 @@ export const EventShow = () => {
   return (
     <Show isLoading={isLoading}>
       <Stack gap={1}>
-        <Typography variant="body1" fontWeight="bold">
-          {"ID"}
-        </Typography>
-        <TextField value={record?.id ?? ""} />
 
         <Typography variant="body1" fontWeight="bold">
-          {"Created"}
+          {"MessageId"}
         </Typography>
-        <TextField value={record?.recordedTime} />
+        <TextField value={record?.messageId ?? ""} />
 
         <Typography variant="body1" fontWeight="bold">
-          {"Data"}
+          {"Date"}
+        </Typography>
+        <TextField value={record?.date} />
+
+        <Typography variant="body1" fontWeight="bold">
+          {"Type"}
         </Typography>
         <TextField value={record?.data} />
 
@@ -37,6 +38,11 @@ export const EventShow = () => {
           {"Status"}
         </Typography>
         <TextField value={record?.status} />
+
+        <Typography variant="body1" fontWeight="bold">
+          {"Message"}
+        </Typography>
+        <TextField value={atob(record?.message)} />
 
       </Stack>
     </Show>
