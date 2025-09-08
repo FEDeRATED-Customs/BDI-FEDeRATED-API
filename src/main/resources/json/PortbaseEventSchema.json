@@ -1,0 +1,79 @@
+{
+  "title": "PortbaseEvent",
+  "type": "object",
+  "required": [
+    "involvesActor",
+    "involvesTimestamp",
+    "transportMeans",
+    "involvedCargo"
+  ],
+  "properties": {
+    "involvesTimestamp": {
+      "type": "string",
+      "format": "datetime"
+    },
+    "involvesActor": {
+      "type": "array",
+      "items": {
+        "involvesLegalPerson": {
+          "type": "object",
+          "required": [
+            "postalCode",
+            "locatedAtStreetName",
+            "locatedInCountry",
+            "locatedInCity",
+            "legalPersonName",
+            "legalPersonID"
+          ],
+          "properties": {
+            "postalCode": {
+              "type": "string",
+              "required": false
+            },
+            "locatedAtStreetName": {
+              "type": "string",
+              "required": false
+            },
+            "locatedInCountry": {
+              "type": "string",
+              "required": true
+            },
+            "locatedInCity": {
+              "type": "string",
+              "required": true
+            },
+            "legalPersonName": {
+              "type": "string",
+              "required": true
+            },
+            "legalPersonID": {
+              "type": "string",
+              "required": true
+            }
+          }
+        },
+        "actorRole":  {
+          "type": "string",
+          "required": true
+        }
+      }
+    },
+    "transportMeans": {
+      "type": "array",
+      "items": {
+        "digitalTwinID": {
+          "type": "string",
+          "required": false
+        },
+        "transportMeansMode": {
+          "type": "string",
+          "required": true
+        },
+        "hasTransportmeansNationality": {
+          "type": "string",
+          "required": false
+        }
+      }
+    }
+  }
+}

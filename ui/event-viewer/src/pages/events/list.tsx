@@ -1,5 +1,5 @@
 import {DataGrid, GridColDef} from "@mui/x-data-grid";
-import {DateField, List, useDataGrid,} from "@refinedev/mui";
+import {DateField, List, useDataGrid, } from "@refinedev/mui";
 import React from "react";
 
 export const EventList = () => {
@@ -34,13 +34,6 @@ export const EventList = () => {
           headerName: "Status",
           type: "string",
           minWidth: 80,
-        },
-        {
-          field: "message",
-          flex: 1,
-          headerName: "Message",
-          type: "string",
-          renderCell: (params: any) => atob(params.value)
         }
       ];
     },
