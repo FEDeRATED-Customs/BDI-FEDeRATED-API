@@ -38,6 +38,7 @@ import nl.tno.federated.api.event.mapper.EventMapper
 import nl.tno.federated.api.event.mapper.UnsupportedEventTypeException
 import nl.tno.federated.api.event.query.EventQuery
 import nl.tno.federated.api.event.query.graphdb.GraphDBEventQueryService
+import nl.tno.federated.api.event.type.EventType
 import nl.tno.federated.api.event.type.EventTypeMapping
 import nl.tno.federated.api.event.type.EventTypeMappingException
 import nl.tno.federated.api.event.validation.JSONValidator
@@ -65,14 +66,23 @@ class EventService(
      * @throws UnsupportedEventTypeException is an unsupported Event type is encountered.
      */
     fun newJsonEvent(event: String, eventType: String, eventDestinations: Set<String>? = null): EnrichedEvent {
-        val enrichedEvent = enrichJsonEvent(event, eventType)
+        val type = eventTypeMapping.getEventType(eventType) ?: throw EventTypeMappingException("EventType not found: $eventType")
+        val enrichedEvent = enrichJsonEvent(event, type)
         validateWithShacl(enrichedEvent)
+
         publishRDFEvent(enrichedEvent, eventDestinations)
         return enrichedEvent
     }
 
+    fun stripEvent(enrichedEvent: EnrichedEvent)
+    {
+
+
+    }
+
     fun validateNewJsonEvent(event: String, eventType: String): EnrichedEvent {
-        val enrichedEvent = enrichJsonEvent(event, eventType)
+        val type = eventTypeMapping.getEventType(eventType) ?: throw EventTypeMappingException("EventType not found: $eventType")
+        val enrichedEvent = enrichJsonEvent(event, type)
         validateWithShacl(enrichedEvent)
         return enrichedEvent
     }
@@ -94,8 +104,8 @@ class EventService(
         return eventMapper.toCompactedJSONLDMap(rdf)
     }
 
-    private fun enrichJsonEvent(jsonEvent: String, eventType: String): EnrichedEvent {
-        val type = eventTypeMapping.getEventType(eventType) ?: throw EventTypeMappingException("EventType not found: $eventType")
+    private fun enrichJsonEvent(jsonEvent: String, type: EventType): EnrichedEvent {
+
         // only validate if a schema is attached to the type
         if (type.schemaDefinition != null) {
             val jsonValidator = JSONValidator()
@@ -111,8 +121,15 @@ class EventService(
         node.put(EVENT_UUID_FIELD, uuid.toString())
         node.put(EVENT_TYPE_FIELD, type.eventType)
 
-        val rdf = eventMapper.toRDFTurtle(jsonNode = node, eventType = type)
-        return EnrichedEvent(jsonEvent, type, uuid, rdf)
+        val rdf = eventMapper.toRDFTurtle(jsonNode = node, rml = type.rml)
+
+        var enrichedEvent = EnrichedEvent(jsonEvent, type, uuid, rdf)
+
+        if (type.minimize == true && type.minimalRml != null ) {
+            enrichedEvent.strippedEventRDF = eventMapper.toRDFTurtle(jsonNode = eventMapper.toJsonNode(enrichedEvent.eventJson), rml = type.minimalRml)
+        }
+
+        return enrichedEvent
     }
 
     private fun validateWithShacl(enrichedEvent: EnrichedEvent) {

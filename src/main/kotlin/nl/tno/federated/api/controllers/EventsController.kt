@@ -92,6 +92,9 @@ class EventsController(
         val destinations: Set<String>? = eventDestinationsToSet(eventDestinations)
         val enrichedEvent = eventService.newJsonEvent(event, eventType, destinations)
         graphDBService.insertEvent(enrichedEvent.eventRDF )
+
+        eventService.stripEvent(enrichedEvent)
+
         log.info("New event created with UUID: {}", enrichedEvent.eventUUID)
         return ResponseEntity.created(URI("/api/events/${enrichedEvent.eventUUID}")).build()
     }
@@ -100,6 +103,7 @@ class EventsController(
     @PostMapping(path = ["/validate"], consumes = [APPLICATION_JSON_VALUE], produces = [MediaType.TEXT_PLAIN_VALUE])
     fun validateEvent(@RequestBody event: String, @RequestHeader(EVENT_TYPE_HEADER) eventType: String): ResponseEntity<String> {
         log.info("Validate new event: {}", event)
+
         val rdf = eventService.validateNewJsonEvent(event, eventType)
         return ResponseEntity.ok(rdf.eventRDF)
     }

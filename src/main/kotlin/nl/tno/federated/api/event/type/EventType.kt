@@ -34,6 +34,7 @@ data class EventType(
     @NotNull val eventType: String,
     @NotNull val rml: String,
     val shacl: String?,
-    val schemaDefinition:
-    String? = null
+    val schemaDefinition: String? = null,
+    val minimalRml: String? = null,
+    val minimize: Boolean? = false
 )

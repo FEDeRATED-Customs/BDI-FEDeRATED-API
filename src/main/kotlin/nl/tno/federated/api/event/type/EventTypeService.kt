@@ -39,11 +39,11 @@ class EventTypeService(private val eventTypeRepository: EventTypeRepository) {
     fun addEventType(e: EventType): EventTypeEntity {
         val current = eventTypeRepository.findByEventType(eventType = e.eventType)
         if( current != null) throw EventTypeServiceException("EventType already exists: ${e.eventType}")
-        return eventTypeRepository.saveAndFlush(EventTypeEntity(eventType = e.eventType, rml = e.rml, shacl = e.shacl, schemaDefinition = e.schemaDefinition) )
+        return eventTypeRepository.saveAndFlush(EventTypeEntity(eventType = e.eventType, rml = e.rml, shacl = e.shacl, schemaDefinition = e.schemaDefinition, minimalRml = e.minimalRml, minimize = e.minimize) )
     }
 
     fun getAllEventTypes(): List<EventType> {
-        return eventTypeRepository.findAll().map { EventType(eventType = it.eventType, rml = it.rml, shacl = it.shacl, schemaDefinition = it.schemaDefinition) }
+        return eventTypeRepository.findAll().map { EventType(eventType = it.eventType, rml = it.rml, shacl = it.shacl, schemaDefinition = it.schemaDefinition , minimalRml = it.minimalRml, minimize = it.minimize) }
     }
 
     fun deleteEventType(eventType: String) {
@@ -55,7 +55,7 @@ class EventTypeService(private val eventTypeRepository: EventTypeRepository) {
     fun updateEventType(update: EventType) {
         val current = eventTypeRepository.findByEventType(eventType = update.eventType)
             ?: throw EventTypeServiceException("No EventType found: ${update.eventType}")
-        val copy = current.copy(rml = update.rml, shacl = update.shacl)
+        val copy = current.copy(rml = update.rml, shacl = update.shacl, minimalRml = update.minimalRml, minimize = update.minimize)
         eventTypeRepository.saveAndFlush(copy)
     }
 
@@ -65,7 +65,10 @@ class EventTypeService(private val eventTypeRepository: EventTypeRepository) {
                 eventType = it.eventType,
                 rml = it.rml,
                 shacl = it.shacl,
-                schemaDefinition = it.schemaDefinition
+                schemaDefinition = it.schemaDefinition,
+                minimalRml = it.minimalRml,
+                minimize = it.minimize
+
             )
         }
     }
