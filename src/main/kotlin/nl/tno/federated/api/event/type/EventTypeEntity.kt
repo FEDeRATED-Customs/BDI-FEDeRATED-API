@@ -44,5 +44,10 @@ data class EventTypeEntity(
     @Column(name = "SHACL",nullable = true, columnDefinition = "TEXT")
     val shacl: String? = null,
     @Column(name = "SCHEMA_DEFINITION",nullable = true, columnDefinition = "TEXT")
-    val schemaDefinition: String? = null
+    val schemaDefinition: String? = null,
+    @Column(name = "MINIMAL_RML", nullable = true, columnDefinition = "TEXT")
+    val minimalRml: String? = null,
+    @Column(name = "MINIMIZE", columnDefinition = "BOOLEAN")
+    val minimize: Boolean? = false
+
 )

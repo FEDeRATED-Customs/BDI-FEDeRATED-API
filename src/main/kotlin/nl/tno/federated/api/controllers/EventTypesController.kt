@@ -94,4 +94,14 @@ class EventTypesController(private val eventTypeMapping: EventTypeMapping) {
     fun updateRml(@PathVariable type: String, @RequestBody rml: String) {
         eventTypeMapping.updateRml(type, rml)
     }
+
+    @GetMapping("/{type}/minimalRml", produces = ["text/turtle"])
+    fun getMinimalRml(@PathVariable type: String): String? {
+        return eventTypeMapping.getEventType( type )?.minimalRml
+    }
+
+    @PostMapping("/{type}/minialRml", consumes = [MediaType.TEXT_PLAIN_VALUE])
+    fun updateMinimalRml(@PathVariable type: String, @RequestBody minimalRml: String) {
+        eventTypeMapping.updateMinimalRml(type, minimalRml)
+    }
 }

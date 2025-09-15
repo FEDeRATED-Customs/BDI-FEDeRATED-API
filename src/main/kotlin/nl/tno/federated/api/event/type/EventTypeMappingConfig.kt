@@ -29,6 +29,7 @@
 
 package nl.tno.federated.api.event.type
 
+
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.core.io.DefaultResourceLoader
 import java.nio.charset.StandardCharsets
@@ -40,9 +41,13 @@ class EventTypeMappingConfig(val types: List<Type>) {
         lateinit var rml: String
         var shacl: String? = null
         var schemaDefinition: String? = null
+        var minimalRml: String? = null
+        var minimize: Boolean? = false
+
         private val resourceLoader = DefaultResourceLoader()
 
-        fun toEventType() = EventType(eventType, rml.loadResourceAsString(), shacl?.loadResourceAsString(), schemaDefinition?.loadResourceAsString())
+        fun toEventType() = EventType(eventType, rml.loadResourceAsString(), shacl?.loadResourceAsString(), schemaDefinition?.loadResourceAsString() ,
+                                        minimalRml?.loadResourceAsString(), minimize)
 
         fun String.loadResourceAsString() = resourceLoader.getResource(this).getContentAsString(StandardCharsets.UTF_8)
     }
