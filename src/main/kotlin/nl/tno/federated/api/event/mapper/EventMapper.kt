@@ -31,7 +31,6 @@ package nl.tno.federated.api.event.mapper
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
-import nl.tno.federated.api.event.type.EventType
 import nl.tno.federated.api.rml.RMLMapper
 import nl.tno.federated.api.util.RDFUtils.convert
 import nl.tno.federated.api.util.toJsonNode
@@ -53,9 +52,9 @@ class EventMapper(
         return event.toJsonNode(objectMapper)
     }
 
-    fun toRDFTurtle(jsonNode: JsonNode, eventType: EventType): String {
+    fun toRDFTurtle(jsonNode: JsonNode, rml: String): String {
         val json = objectMapper.writeValueAsString(jsonNode)
-        return rmlMapper.createTriples(json, eventType.rml) ?: throw EventMapperException("Unable to map event to RDF, no output from mapping.")
+        return rmlMapper.createTriples(json, rml) ?: throw EventMapperException("Unable to map event to RDF, no output from mapping.")
     }
 
     fun toCompactedJSONLD(rdf: String): String {

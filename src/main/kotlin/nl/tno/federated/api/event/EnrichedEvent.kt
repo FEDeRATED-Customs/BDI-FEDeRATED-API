@@ -38,5 +38,6 @@ data class EnrichedEvent(
     val eventJson: String,
     val eventType: EventType,
     val eventUUID: UUID,
-    val eventRDF: String
+    var eventRDF: String,
+    var strippedEventRDF: String? = null
 )
