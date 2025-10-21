@@ -29,11 +29,11 @@
 
 package nl.tno.federated.api.orchestrator
 
-import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import nl.tno.federated.api.event.EnrichedEvent
 import nl.tno.federated.api.event.distribution.orchestrator.OrchestratorEventDestination
 import nl.tno.federated.api.event.mapper.EventMapper
+import nl.tno.federated.api.orchestrator.eventrequest.FullEventRequestResult
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
@@ -45,10 +45,16 @@ import java.util.*
 
 data class OrchestratorContent (
     val eventUUID: UUID,
-    val eventType: String,
-    val eventRDF: String,
+    val eventType: String?= null,
+    val eventRDF: String? = null,
     var eventRecorded: Instant? = Instant.now()
 )
+
+data class OrchestratorQueryContent
+(
+    val eventUUID: UUID
+)
+
 
 @Service
 class OrchestratorService(
@@ -74,37 +80,27 @@ class OrchestratorService(
                                 message = result.message)
     }
 
-    fun findEventById(id: String) : String? {
-        val message = orchestratorRepository.findByMessageId(UUID.fromString(id))
-        return if (message != null)  {
-            val content = objectMapper.readValue(Base64.getDecoder().decode(message.message),OrchestratorContent::class.java)
-            eventMapper.toCompactedJSONLD(content.eventRDF)
-        } else {
-            return null
-        }
-    }
-
-    fun findAllEvents() : List<JsonNode> {
-        val result = orchestratorRepository.findAll()
-        return result.map {
-            val content = objectMapper.readValue(Base64.getDecoder().decode(it.message),OrchestratorContent::class.java)
-            eventMapper.toJsonNode(content.eventRDF)
-        }
-    }
 
     fun findAllEvents(page: Int, size: Int) : List<String> {
         val pageable: Pageable = PageRequest.of(page, size)
         val result: Page<OrchestratorMessageEntity> = orchestratorRepository.findAll(pageable)
         return result.content.map {
             val content = objectMapper.readValue(Base64.getDecoder().decode(it.message),OrchestratorContent::class.java)
-            eventMapper.toCompactedJSONLD(content.eventRDF)
+            content.eventRDF?.let { it1 -> eventMapper.toCompactedJSONLD(it1) }.toString()
         }
     }
 
-    private fun getOrchestratorContent(event: EnrichedEvent) : String {
-      return objectMapper.writeValueAsString(OrchestratorContent(event.eventUUID, event.eventType.eventType, event.eventRDF))
-
+  /*  fun sendRequestResultMessage(result: FullEventRequestResult, destination: OrchestratorEventDestination): UUID {
+        val message = OutgoingOrchestratorMessage.build(
+            destinations,
+            MessageType.EVENT,
+            Base64.getEncoder().encodeToString(getOrchestratorContent().toByteArray()),
+            enrichedEvent.eventUUID)
+        httpClientService.sendMessage(message)
+        addMessage(message)
+        return message.messageId
     }
+*/
     fun sendMessage(enrichedEvent: EnrichedEvent, destinations: Set<OrchestratorEventDestination>): UUID {
         val message = OutgoingOrchestratorMessage.build(
             destinations,
@@ -116,9 +112,15 @@ class OrchestratorService(
         return message.messageId
     }
 
-    fun receiveMessage(message: IncomingOrchestratorMessage): OrchestratorContent {
+    fun receiveEventMessage(message: IncomingOrchestratorMessage): OrchestratorContent {
         val inserted = addMessage(message)
+
         return objectMapper.readValue(Base64.getDecoder().decode(inserted.message),OrchestratorContent::class.java)
+    }
+
+    fun receiveQueryMessage(message: IncomingOrchestratorMessage): OrchestratorQueryContent {
+        val inserted = addMessage(message)
+        return objectMapper.readValue(Base64.getDecoder().decode(inserted.message),OrchestratorQueryContent::class.java)
     }
 
     @Transactional
@@ -160,17 +162,18 @@ class OrchestratorService(
         return result.content.map{it.toOrchestratorMessage()}
     }
 
-    fun findIncomingMessages(page: Int, size: Int): List<OrchestratorMessage> {
+    // Methods for the message viewer.
+    fun findAllIncomingDOMessages(page: Int, size: Int): List<OrchestratorMessage> {
         val pageable: Pageable = PageRequest.of(page, size)
         val result: Page<OrchestratorMessageEntity> = orchestratorRepository.findByStatusIn(listOf(OrchestratorMessageStatus.RECEIVED,OrchestratorMessageStatus.FORWARDED), pageable)
         return result.content.map{it.toOrchestratorMessage()}
     }
-    fun findAllOutGoingMessages(page: Int, size: Int): List<OrchestratorMessage> {
+    fun findAllOutGoingDOMessages(page: Int, size: Int): List<OrchestratorMessage> {
         val pageable: Pageable = PageRequest.of(page, size)
         val result: Page<OrchestratorMessageEntity> = orchestratorRepository.findByStatusIn(listOf(OrchestratorMessageStatus.SEND), pageable)
         return result.content.map{it.toOrchestratorMessage()}
     }
-    fun findAllFailedMessages(page: Int, size: Int): List<OrchestratorMessage> {
+    fun findAllFailedDOMessages(page: Int, size: Int): List<OrchestratorMessage> {
         val pageable: Pageable = PageRequest.of(page, size)
         val result: Page<OrchestratorMessageEntity> = orchestratorRepository.findByStatusIn(listOf(OrchestratorMessageStatus.INVALID,OrchestratorMessageStatus.FAILED,OrchestratorMessageStatus.REFUSED), pageable)
         return result.content.map{it.toOrchestratorMessage()}
@@ -192,4 +195,30 @@ class OrchestratorService(
         }
         return map
     }
+
+    fun findEventsIncomingAfter(offset: Instant, page: Int, size: Int, messageType: MessageType): List<OrchestratorContent> {
+        val result = orchestratorRepository.findByDateAfterAndStatusAndMessageType(offset, PageRequest.of(page, size),OrchestratorMessageStatus.RECEIVED, MessageType.EVENT)
+        val map = result.content.map {
+            val content =
+                objectMapper.readValue(Base64.getDecoder().decode(it.message), OrchestratorContent::class.java)
+            OrchestratorContent(
+                eventUUID = content.eventUUID,
+                eventType = content.eventType,
+                eventRDF = content.eventRDF,
+                eventRecorded = it.date
+            )
+        }
+        return map
+    }
+
+    private fun getOrchestratorContent(event: EnrichedEvent) : String {
+        return objectMapper.writeValueAsString(OrchestratorContent(event.eventUUID, event.eventType.eventType, event.eventRDF))
+
+    }
+
+    private fun getOrchestratorContent(requestResult: FullEventRequestResult) : String {
+        return objectMapper.writeValueAsString(OrchestratorContent(requestResult.eventUUID, requestResult.eventType.eventType, requestResult.eventRDF))
+
+    }
+
 }

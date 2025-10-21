@@ -23,18 +23,13 @@
 // BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-/**
- *
- */
 
-package nl.tno.federated.api.orchestrator
+package nl.tno.federated.api.orchestrator.eventrequest
 
-import nl.tno.federated.api.webhook.OrchestratorEvent
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
-import java.time.Instant
 
 /**
  * The EventObserver retrieves events from the history database.
@@ -44,36 +39,35 @@ import java.time.Instant
  * received during the downtime.
  */
 @Service
-class OrchestratorMessageObserver(private val orchestratorService: OrchestratorService, private val applicationEventPublisher: ApplicationEventPublisher) {
+class FullEventRequestObserver(private val fullEventService: FullEventRequestService, private val applicationEventPublisher: ApplicationEventPublisher) {
 
-    private val log = LoggerFactory.getLogger(OrchestratorMessageObserver::class.java)
-    private var lastPoll:  Instant = Instant.now()
+    private val log = LoggerFactory.getLogger(FullEventRequestObserver::class.java)
 
     @Scheduled(fixedDelay = 60_000, initialDelay = 15_000)
     fun observe() {
         try {
-            log.info("Retrieving events for publication since last successful poll interval: {}", lastPoll)
-            val result = orchestratorService.findEventsIncomingAfter(lastPoll,1, 500, MessageType.EVENT )
-            log.info("{} events retrieved from incoming history for publication.", result.size)
+            log.info("Retrieving event queries that need that are requested and not handled")
+            val result = fullEventService.findByStatus(FullEventRequestStatus.QUEUED)
+            log.info("{} event queries retrieved .", result.size)
 
             if(result.isNotEmpty()) {
 
-                result.forEach {
+                result.map {
+                    // find the event in the graph DB
+
                     log.info("Publishing event...")
-                    applicationEventPublisher.publishEvent(OrchestratorEvent(it.eventType!!, it.eventRDF!!, it.eventUUID))
+                    applicationEventPublisher.publishEvent(
+                        FullEventRequestEvent(
+                            eventUUID = it.eventId,
+                            requester = it.destination
+                        )
+                    )
                 }
-                // Update the last poll timestamp to last recordedTime from list of events
-                lastPoll = lastRecordedTimestamp(result).eventRecorded!!
             }
-            else
-                lastPoll = Instant.now()
         }
         catch (e: Exception) {
-            log.warn("Failed to fetch events for publication: {}", e.message)
+            log.warn("Failed to fetch requests {}", e.message)
         }
     }
 
-    private fun lastRecordedTimestamp(list: List<OrchestratorContent>): OrchestratorContent {
-        return list.maxBy { it.eventRecorded!! }
-    }
 }

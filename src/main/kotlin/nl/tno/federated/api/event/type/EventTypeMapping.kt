@@ -69,25 +69,25 @@ class EventTypeMapping(
     }
 
     fun updateShacl(eventType: String, shacl: String) {
-        val current = eventTypeService.getEventType(eventType)
+        val current = getEventType(eventType)
             ?: throw EventTypeMappingException("EventType not found: ${eventType}")
         eventTypeService.updateEventType(current.copy(shacl = shacl))
     }
 
     fun updateSchemaDefinition(eventType: String, schema: String) {
-        val current = eventTypeService.getEventType(eventType)
+        val current = getEventType(eventType)
             ?: throw EventTypeMappingException("EventType not found: ${eventType}")
         eventTypeService.updateEventType(current.copy(schemaDefinition = schema))
     }
 
     fun updateRml(eventType: String, rml: String) {
-        val current = eventTypeService.getEventType(eventType)
+        val current = getEventType(eventType)
             ?: throw EventTypeMappingException("EventType not found: ${eventType}")
         eventTypeService.updateEventType(current.copy(rml = rml))
     }
 
     fun updateMinimalRml(eventType: String, minimalRml: String) {
-        val current = eventTypeService.getEventType(eventType)
+        val current = getEventType(eventType)
             ?: throw EventTypeMappingException("EventType not found: ${eventType}")
         eventTypeService.updateEventType(current.copy(minimalRml = minimalRml))
     }

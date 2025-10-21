@@ -13,9 +13,12 @@
     rr:class <https://ontology.tno.nl/logistics/federated/Event#Event>
   ] ;
   rr:predicateObjectMap [
+      rr:predicate <https://ontology.tno.nl/logistics/federated/Event#UUID> ;
+      rr:objectMap [ rml:reference "UUID" ]
+    ], [
     rr:predicate <https://ontology.tno.nl/logistics/federated/Event#involvesTimestamp> ;
     rr:objectMap [ rml:reference "involvesTimestamp" ]
-  ], [
+    ], [
     rr:predicate <https://ontology.tno.nl/logistics/federated/Event#involvesTimeClassification> ;
     rr:objectMap [ rml:reference "involvesTimeClassification" ]
   ], [
