@@ -97,7 +97,7 @@ class ShaclValidator(private val shapes: List<String>) {
                         val sw = StringWriter()
                         Rio.write(validationReportModel, sw, RDFFormat.TURTLE, writerConfig)
                         log.debug("SHACL validation failed, validation report:\n {}", sw.toString())
-                        throw ShaclValidationException(cause.message)
+                        throw (ShaclValidationException(cause.message))
                     }
                     throw exception
                 }

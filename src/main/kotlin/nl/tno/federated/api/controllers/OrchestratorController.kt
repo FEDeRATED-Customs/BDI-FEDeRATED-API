@@ -40,8 +40,10 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.*
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
+import nl.tno.federated.api.event.EventService
 import nl.tno.federated.api.graphdb.GraphDBService
 import nl.tno.federated.api.orchestrator.IncomingOrchestratorMessage
+import nl.tno.federated.api.orchestrator.MessageType
 import nl.tno.federated.api.orchestrator.OrchestratorService
 import nl.tno.federated.api.util.toJsonNode
 import org.slf4j.LoggerFactory
@@ -55,7 +57,8 @@ import org.springframework.web.bind.annotation.*
 @Tag(name = "OrchestratorController", description = "Allows for receiving and retrieval of events.")
 class OrchestratorController(
     private val orchestratorService: OrchestratorService,
-    private val graphDBService: GraphDBService
+    private val graphDBService: GraphDBService,
+    private val eventService: EventService
 ) {
 
     companion object {
@@ -86,17 +89,32 @@ class OrchestratorController(
         return ResponseEntity.ok(messages.map{ it.toJsonNode(objectMapper) })
     }
 
-    @Operation(summary = "Receive a new event from the orchestrator and store it in the database.")
+    @Operation(summary = "Receive a new event or a full event request from the orchestrator and store it in the database.")
     @PostMapping(path = [""], consumes = [APPLICATION_JSON_VALUE], produces = [APPLICATION_JSON_VALUE])
     fun postMessage(@RequestBody incomingMessage: IncomingOrchestratorMessage): ResponseEntity<String?> {
         log.info("Received new message: {}", incomingMessage)
         try {
-            with(orchestratorService.receiveMessage(incomingMessage)) {
+                when (incomingMessage.messageType) {
+                    MessageType.EVENT -> {
+                        with(orchestratorService.receiveEventMessage(incomingMessage)) {
+                            if (!graphDBService.insertEvent(this.eventRDF!!)) {
+                                orchestratorService.updateMessageToInvalid(incomingMessage)
+                            }
+                        }
+                    }
+                    MessageType.QUERY -> {
+                        // check access with dip
+                        with(orchestratorService.receiveQueryMessage(incomingMessage)) {
 
-                if (!graphDBService.insertEvent(this.eventRDF)) {
-                    orchestratorService.updateMessageToInvalid(incomingMessage)
+                        }
+
+                        // schedule query for running and send result as a new event message
+                       // val queryResult = eventService.queryByEventId(this.eventUUID)
+                    }
+                    MessageType.RESULT -> {
+                        // store result RDF in database
+                    }
                 }
-            }
         } catch (e: Exception) {
             log.warn("Not processing message {} because: {}",incomingMessage.messageId,e.message )
             return ResponseEntity(HttpStatus.BAD_REQUEST)

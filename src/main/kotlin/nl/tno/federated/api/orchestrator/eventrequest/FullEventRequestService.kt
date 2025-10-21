@@ -1,5 +1,5 @@
 // FEDeRATED node
-// 
+//
 // Copyright (c) 2024-2025 Netherlands Organization for Applied Scientific Research TNO
 //
 // This file is part of the FEDeRATED Node API.
@@ -26,28 +26,34 @@
 /**
  *
  */
+package nl.tno.federated.api.orchestrator.eventrequest
 
-package nl.tno.federated.api.orchestrator
-
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.Pageable
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.repository.PagingAndSortingRepository
-import org.springframework.stereotype.Repository
-import java.time.Instant
+import com.fasterxml.jackson.annotation.JsonIgnore
+import nl.tno.federated.api.event.EventService
+import org.slf4j.LoggerFactory
+import org.springframework.context.event.EventListener
+import org.springframework.stereotype.Service
 import java.util.*
 
+data class FullEventRequestEvent(val requester: String, val eventUUID: UUID)
 
-@Repository
-interface OrchestratorRepository : JpaRepository<OrchestratorMessageEntity, Long>,
-                                   PagingAndSortingRepository<OrchestratorMessageEntity, Long> {
+@Service
+class FullEventRequestService ( private val fullEventRequestRepository: FullEventRequestRepository) {
 
-    override fun findAll(pageable: Pageable) : Page<OrchestratorMessageEntity>
+    private val log = LoggerFactory.getLogger(FullEventRequestService::class.java)
 
-    override fun findAll(): List<OrchestratorMessageEntity>
-    fun findByMessageId(messageId: UUID): OrchestratorMessageEntity?
-    fun findByDateAfterAndStatus(date: Instant,pageable: Pageable, status: OrchestratorMessageStatus): Page<OrchestratorMessageEntity>
-    fun findByDateAfterAndStatusAndMessageType(date: Instant,pageable: Pageable, status: OrchestratorMessageStatus, messageType: MessageType): Page<OrchestratorMessageEntity>
-    fun findByDateAfter(date: Instant,pageable: Pageable): Page<OrchestratorMessageEntity>
-    fun findByStatusIn(status: List<OrchestratorMessageStatus>,pageable: Pageable): Page<OrchestratorMessageEntity>
+    /**
+     * This method is being invoked whenever new GenericEvent's are published by the ApplicationEventPublisher
+     */
+    @EventListener
+    fun handleEvent(event: FullEventRequestEvent) {
+        // handle the result of the request abd sed it as an Event message
+    }
+
+    fun findByStatus(status: FullEventRequestStatus) : List<FullEventRequest> {
+        val result =  fullEventRequestRepository.findByStatus(status)
+        return result.map{it.toFullEventRequest()}
+    }
+
+
 }

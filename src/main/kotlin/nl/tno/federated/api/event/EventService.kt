@@ -43,6 +43,7 @@ import nl.tno.federated.api.event.type.EventTypeMapping
 import nl.tno.federated.api.event.type.EventTypeMappingException
 import nl.tno.federated.api.event.validation.JSONValidator
 import nl.tno.federated.api.event.validation.ShaclValidator
+import nl.tno.federated.api.graphdb.GraphDBService
 import nl.tno.federated.api.orchestrator.OrchestratorService
 import org.springframework.stereotype.Service
 import java.util.*
@@ -57,7 +58,9 @@ class EventService(
     private val eventQueryService: GraphDBEventQueryService,
     private val eventDistributionService: OrchestratorEventDistributionService,
     private val eventTypeMapping: EventTypeMapping,
+    private val graphDBService: GraphDBService,
     private val orchestratorService: OrchestratorService
+
 ) {
 
     /**
@@ -70,14 +73,9 @@ class EventService(
         val enrichedEvent = enrichJsonEvent(event, type)
         validateWithShacl(enrichedEvent)
 
-        publishRDFEvent(enrichedEvent, eventDestinations)
+      //  publishRDFEvent(enrichedEvent, eventDestinations)
+        graphDBService.insertEvent(enrichedEvent.eventRDF)
         return enrichedEvent
-    }
-
-    fun stripEvent(enrichedEvent: EnrichedEvent)
-    {
-
-
     }
 
     fun validateNewJsonEvent(event: String, eventType: String): EnrichedEvent {
@@ -85,11 +83,6 @@ class EventService(
         val enrichedEvent = enrichJsonEvent(event, type)
         validateWithShacl(enrichedEvent)
         return enrichedEvent
-    }
-
-    fun findEventById(id: String): String? {
-        val rdf = orchestratorService.findEventById(id) ?: return null
-        return rdf
     }
 
     fun findAll(page: Int, size: Int): List<JsonNode> {
@@ -123,12 +116,10 @@ class EventService(
 
         val rdf = eventMapper.toRDFTurtle(jsonNode = node, rml = type.rml)
 
-        var enrichedEvent = EnrichedEvent(jsonEvent, type, uuid, rdf)
-
+        val enrichedEvent = EnrichedEvent(jsonEvent, type, uuid, rdf)
         if (type.minimize == true && type.minimalRml != null ) {
-            enrichedEvent.strippedEventRDF = eventMapper.toRDFTurtle(jsonNode = eventMapper.toJsonNode(enrichedEvent.eventJson), rml = type.minimalRml)
+            enrichedEvent.strippedEventRDF = eventMapper.toRDFTurtle(jsonNode = node, rml = type.minimalRml)
         }
-
         return enrichedEvent
     }
 

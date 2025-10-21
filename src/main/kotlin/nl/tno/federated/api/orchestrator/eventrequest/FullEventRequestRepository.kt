@@ -27,27 +27,19 @@
  *
  */
 
-package nl.tno.federated.api.orchestrator
+package nl.tno.federated.api.orchestrator.eventrequest
 
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.repository.PagingAndSortingRepository
 import org.springframework.stereotype.Repository
-import java.time.Instant
-import java.util.*
+
 
 
 @Repository
-interface OrchestratorRepository : JpaRepository<OrchestratorMessageEntity, Long>,
-                                   PagingAndSortingRepository<OrchestratorMessageEntity, Long> {
+interface FullEventRequestRepository : JpaRepository<FullEventRequestEntity, Long>,
+                                   PagingAndSortingRepository<FullEventRequestEntity, Long> {
 
-    override fun findAll(pageable: Pageable) : Page<OrchestratorMessageEntity>
+    override fun findAll(): List<FullEventRequestEntity>
+    fun findByStatus(status: FullEventRequestStatus): List<FullEventRequestEntity>
 
-    override fun findAll(): List<OrchestratorMessageEntity>
-    fun findByMessageId(messageId: UUID): OrchestratorMessageEntity?
-    fun findByDateAfterAndStatus(date: Instant,pageable: Pageable, status: OrchestratorMessageStatus): Page<OrchestratorMessageEntity>
-    fun findByDateAfterAndStatusAndMessageType(date: Instant,pageable: Pageable, status: OrchestratorMessageStatus, messageType: MessageType): Page<OrchestratorMessageEntity>
-    fun findByDateAfter(date: Instant,pageable: Pageable): Page<OrchestratorMessageEntity>
-    fun findByStatusIn(status: List<OrchestratorMessageStatus>,pageable: Pageable): Page<OrchestratorMessageEntity>
 }

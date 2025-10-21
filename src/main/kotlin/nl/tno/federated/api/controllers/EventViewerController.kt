@@ -70,9 +70,9 @@ class EventViewerController(
         if (page < 1) throw InvalidPageCriteria("Page should be greater than 0.")
         if (size < 1) throw InvalidPageCriteria("Page size should be greater than 0.")
         val messages = when (inorOutorFailed) {
-            "in" -> orchestratorService.findIncomingMessages(page-1,size)
-            "out" -> orchestratorService.findAllOutGoingMessages(page-1,size)
-            "failed" -> orchestratorService.findAllFailedMessages(page-1,size)
+            "in" -> orchestratorService.findAllIncomingDOMessages(page-1,size)
+            "out" -> orchestratorService.findAllOutGoingDOMessages(page-1,size)
+            "failed" -> orchestratorService.findAllFailedDOMessages(page-1,size)
             else -> orchestratorService.findAllMessages(page-1,size)
         }
         return ResponseEntity.ok(messages.map{ it.toJsonNode(objectMapper) })

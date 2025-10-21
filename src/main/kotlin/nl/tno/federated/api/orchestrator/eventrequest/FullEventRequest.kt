@@ -26,28 +26,24 @@
 /**
  *
  */
+package nl.tno.federated.api.orchestrator.eventrequest
 
-package nl.tno.federated.api.orchestrator
-
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.Pageable
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.repository.PagingAndSortingRepository
-import org.springframework.stereotype.Repository
+import com.fasterxml.jackson.annotation.JsonValue
+import jakarta.validation.constraints.NotNull
+import nl.tno.federated.api.event.type.EventType
 import java.time.Instant
 import java.util.*
 
-
-@Repository
-interface OrchestratorRepository : JpaRepository<OrchestratorMessageEntity, Long>,
-                                   PagingAndSortingRepository<OrchestratorMessageEntity, Long> {
-
-    override fun findAll(pageable: Pageable) : Page<OrchestratorMessageEntity>
-
-    override fun findAll(): List<OrchestratorMessageEntity>
-    fun findByMessageId(messageId: UUID): OrchestratorMessageEntity?
-    fun findByDateAfterAndStatus(date: Instant,pageable: Pageable, status: OrchestratorMessageStatus): Page<OrchestratorMessageEntity>
-    fun findByDateAfterAndStatusAndMessageType(date: Instant,pageable: Pageable, status: OrchestratorMessageStatus, messageType: MessageType): Page<OrchestratorMessageEntity>
-    fun findByDateAfter(date: Instant,pageable: Pageable): Page<OrchestratorMessageEntity>
-    fun findByStatusIn(status: List<OrchestratorMessageStatus>,pageable: Pageable): Page<OrchestratorMessageEntity>
+enum class FullEventRequestStatus(@JsonValue val status: String) {
+    QUEUED("queued"),
+    RUNNING("running"),
+    UNAUTHORIZED("unauthorized"),
+    EVENTNOTFOUND("eventNotFound"),
+    EVENTSEND("eventSend"),
 }
+
+data class FullEventRequest(
+    @NotNull val eventId: UUID,
+    @NotNull var status: FullEventRequestStatus,
+    @NotNull val destination: String,
+ )

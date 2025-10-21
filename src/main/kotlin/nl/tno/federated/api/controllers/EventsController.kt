@@ -73,7 +73,7 @@ class EventsController(
     @GetMapping(path = ["/{id}"], produces = [APPLICATION_JSON_VALUE])
     fun getEventById(@PathVariable("id") id: String): ResponseEntity<String> {
         log.info("Get event by ID: {}", id)
-        return ResponseEntity.ok(orchestratorService.findEventById(id))
+        return ResponseEntity.ok(orchestratorService.findMessageById(id)?.message)
     }
 
     @Operation(summary = "Return the event data in compacted JSONLD format.")
@@ -91,9 +91,6 @@ class EventsController(
         log.info("Received new event: {}", event)
         val destinations: Set<String>? = eventDestinationsToSet(eventDestinations)
         val enrichedEvent = eventService.newJsonEvent(event, eventType, destinations)
-        graphDBService.insertEvent(enrichedEvent.eventRDF )
-
-        eventService.stripEvent(enrichedEvent)
 
         log.info("New event created with UUID: {}", enrichedEvent.eventUUID)
         return ResponseEntity.created(URI("/api/events/${enrichedEvent.eventUUID}")).build()

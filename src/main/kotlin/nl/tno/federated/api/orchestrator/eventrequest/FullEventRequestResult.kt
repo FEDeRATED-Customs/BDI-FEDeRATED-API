@@ -1,5 +1,5 @@
 // FEDeRATED node
-// 
+//
 // Copyright (c) 2024-2025 Netherlands Organization for Applied Scientific Research TNO
 //
 // This file is part of the FEDeRATED Node API.
@@ -26,28 +26,16 @@
 /**
  *
  */
+package nl.tno.federated.api.orchestrator.eventrequest
 
-package nl.tno.federated.api.orchestrator
-
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.Pageable
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.repository.PagingAndSortingRepository
-import org.springframework.stereotype.Repository
-import java.time.Instant
+import nl.tno.federated.api.event.type.EventType
 import java.util.*
 
-
-@Repository
-interface OrchestratorRepository : JpaRepository<OrchestratorMessageEntity, Long>,
-                                   PagingAndSortingRepository<OrchestratorMessageEntity, Long> {
-
-    override fun findAll(pageable: Pageable) : Page<OrchestratorMessageEntity>
-
-    override fun findAll(): List<OrchestratorMessageEntity>
-    fun findByMessageId(messageId: UUID): OrchestratorMessageEntity?
-    fun findByDateAfterAndStatus(date: Instant,pageable: Pageable, status: OrchestratorMessageStatus): Page<OrchestratorMessageEntity>
-    fun findByDateAfterAndStatusAndMessageType(date: Instant,pageable: Pageable, status: OrchestratorMessageStatus, messageType: MessageType): Page<OrchestratorMessageEntity>
-    fun findByDateAfter(date: Instant,pageable: Pageable): Page<OrchestratorMessageEntity>
-    fun findByStatusIn(status: List<OrchestratorMessageStatus>,pageable: Pageable): Page<OrchestratorMessageEntity>
-}
+/**
+ * Event class containing the original event json, the event type, generated UUID and event RDF.
+ */
+data class FullEventRequestResult(
+    val eventType: EventType,
+    val eventUUID: UUID,
+    var eventRDF: String,
+)
