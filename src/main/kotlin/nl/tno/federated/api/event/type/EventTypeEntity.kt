@@ -52,5 +52,5 @@ data class EventTypeEntity(
     @Column(name = "SEARCHQUERY", columnDefinition = "TEXT")
     val searchQuery: String? = null,
     @Column(name = "EVENT_LIFETIME", columnDefinition = "BIGINT")
-    val eventLifeTime: Long? = 31556952000 // 1 year in ms default
+    val eventLifeTime: Long? = 0 // 0 days = unlimited, default
 )

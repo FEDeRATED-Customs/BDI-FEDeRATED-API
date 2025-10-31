@@ -166,6 +166,12 @@ class OrchestratorService(
         val result: Page<OrchestratorMessageEntity> = orchestratorRepository.findByStatusIn(listOf(OrchestratorMessageStatus.SEND), pageable)
         return result.content.map{it.toOrchestratorMessage()}
     }
+
+    fun findAllMessagesOfEventTypeBefore(offset: Long, eventType: String): List<OrchestratorMessage> {
+        val result = orchestratorRepository.findByRecordedTimeLessThanAndEventType(offset, eventType )
+        return result.map{it.toOrchestratorMessage()}
+    }
+
     fun findAllFailedDOMessages(page: Int, size: Int): List<OrchestratorMessage> {
         val pageable: Pageable = PageRequest.of(page, size)
         val result: Page<OrchestratorMessageEntity> = orchestratorRepository.findByStatusIn(listOf(OrchestratorMessageStatus.CREATED, OrchestratorMessageStatus.INVALID,OrchestratorMessageStatus.FAILED,OrchestratorMessageStatus.REFUSED), pageable)
@@ -175,8 +181,8 @@ class OrchestratorService(
 
 
     fun findIncomingAfter(offset: Long, page: Int, size: Int): List<OrchestratorContent> {
-        val result = orchestratorRepository.findByRecordedTimeGreaterThanAndStatus(offset, PageRequest.of(page, size),OrchestratorMessageStatus.RECEIVED)
-        val map = result.content.map {
+        val result = orchestratorRepository.findByRecordedTimeGreaterThanAndStatus(offset,OrchestratorMessageStatus.RECEIVED)
+        val map = result.map {
             val content =
                 objectMapper.readValue(Base64.getDecoder().decode(it.message), OrchestratorContent::class.java)
             OrchestratorContent(
@@ -190,8 +196,8 @@ class OrchestratorService(
     }
 
     fun findEventsIncomingAfter(offset: Long, page: Int, size: Int, messageType: MessageType): List<OrchestratorContent> {
-        val result = orchestratorRepository.findByRecordedTimeGreaterThanAndStatusAndMessageType(offset, PageRequest.of(page, size),OrchestratorMessageStatus.RECEIVED, MessageType.EVENT)
-        val map = result.content.map {
+        val result = orchestratorRepository.findByRecordedTimeGreaterThanAndStatusAndMessageType(offset,OrchestratorMessageStatus.RECEIVED, MessageType.EVENT)
+        val map = result.map {
             val content =
                 objectMapper.readValue(Base64.getDecoder().decode(it.message), OrchestratorContent::class.java)
             OrchestratorContent(
@@ -208,6 +214,14 @@ class OrchestratorService(
         val rdf = if (event.strippedEventRDF != null) event.strippedEventRDF else event.eventRDF
         return objectMapper.writeValueAsString(OrchestratorContent(event.eventUUID, event.eventType.eventType, rdf))
 
+    }
+
+    fun deleteMessage(message: OrchestratorMessageEntity) {
+        orchestratorRepository.delete(message)
+    }
+
+    fun deleteMessages(messages: List<OrchestratorMessageEntity>) {
+        orchestratorRepository.deleteAll(messages)
     }
 
 }

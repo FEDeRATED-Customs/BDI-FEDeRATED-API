@@ -46,9 +46,10 @@ interface OrchestratorRepository : JpaRepository<OrchestratorMessageEntity, Long
 
     override fun findAll(): List<OrchestratorMessageEntity>
     fun findByMessageId(messageId: UUID): OrchestratorMessageEntity?
-    fun findByRecordedTimeGreaterThanAndStatus(recordedTime: Long,pageable: Pageable, status: OrchestratorMessageStatus): Page<OrchestratorMessageEntity>
-    fun findByRecordedTimeGreaterThanAndStatusAndMessageType(recordedTime: Long,pageable: Pageable, status: OrchestratorMessageStatus, messageType: MessageType): Page<OrchestratorMessageEntity>
-    fun findByRecordedTimeGreaterThan(v: Long,pageable: Pageable): Page<OrchestratorMessageEntity>
-    fun findByRecordedTimeLessThanAndEventType(recordedTime: Long, eventType: String, pageable: Pageable): Page<OrchestratorMessageEntity>
+
+    fun findByRecordedTimeGreaterThanAndStatus(recordedTime: Long, status: OrchestratorMessageStatus): List<OrchestratorMessageEntity>
+    fun findByRecordedTimeGreaterThanAndStatusAndMessageType(recordedTime: Long, status: OrchestratorMessageStatus, messageType: MessageType): List<OrchestratorMessageEntity>
+    fun findByRecordedTimeLessThanAndEventType(recordedTime: Long, eventType: String): List<OrchestratorMessageEntity>
+
     fun findByStatusIn(status: List<OrchestratorMessageStatus>,pageable: Pageable): Page<OrchestratorMessageEntity>
 }
