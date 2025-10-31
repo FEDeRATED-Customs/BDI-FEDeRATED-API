@@ -47,7 +47,7 @@ import java.time.Instant
 class OrchestratorMessageObserver(private val orchestratorService: OrchestratorService, private val applicationEventPublisher: ApplicationEventPublisher) {
 
     private val log = LoggerFactory.getLogger(OrchestratorMessageObserver::class.java)
-    private var lastPoll:  Instant = Instant.now()
+    private var lastPoll:  Long = Instant.now().epochSecond
 
     @Scheduled(fixedDelay = 60_000, initialDelay = 15_000)
     fun observe() {
@@ -66,7 +66,7 @@ class OrchestratorMessageObserver(private val orchestratorService: OrchestratorS
                 lastPoll = lastRecordedTimestamp(result).eventRecorded!!
             }
             else
-                lastPoll = Instant.now()
+                lastPoll = Instant.now().epochSecond
         }
         catch (e: Exception) {
             log.warn("Failed to fetch events for publication: {}", e.message)

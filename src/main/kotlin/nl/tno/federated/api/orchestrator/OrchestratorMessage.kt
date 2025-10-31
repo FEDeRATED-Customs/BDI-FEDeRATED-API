@@ -28,15 +28,14 @@
  */
 package nl.tno.federated.api.orchestrator
 
-import com.fasterxml.jackson.annotation.JsonFormat
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonValue
 import jakarta.validation.constraints.NotNull
 import nl.tno.federated.api.event.distribution.orchestrator.OrchestratorEventDestination
-import java.time.Instant
-import java.time.Instant.now
 import java.util.*
 
 enum class OrchestratorMessageStatus(@JsonValue val type: String) {
+    CREATED("created"),
     SEND("send"),
     FAILED("failed"),
     REFUSED("refused"),
@@ -52,12 +51,11 @@ enum class DistributionType(@JsonValue val type: String) {
 
 enum class MessageType (@JsonValue val type: String) {
     EVENT ("event"),
-    QUERY ("query"),
-    RESULT ("result")
+    FULLEVENT ("fullevent")
 }
 
 data class OrchestratorMessage(
-    @NotNull val date: Instant,
+    @NotNull val recordedTime: Long,
     @NotNull val status: OrchestratorMessageStatus,
     val origin: String?,
     val distributionType: DistributionType?,
@@ -65,11 +63,13 @@ data class OrchestratorMessage(
     @NotNull override val messageId: UUID,
     @NotNull override val messageType: MessageType,
     @NotNull override val message: String,
+    @JsonIgnore val originalJSON: String?,
+    @JsonIgnore val eventType: String?
  ) : IOrchestratorMessage {
 
      override fun toEntity(): OrchestratorMessageEntity {
         return OrchestratorMessageEntity(
-            date = date,
+            recordedTime = recordedTime,
             status = status,
             destinations = destination,
             origin = origin,
@@ -77,45 +77,52 @@ data class OrchestratorMessage(
             messageId = messageId,
             messageType = messageType,
             message = message,
+            originalJSON = originalJSON,
+            eventType= eventType
+
         )
     }
  }
 
-
-
 data class OutgoingOrchestratorMessage (
+    @NotNull val recordedTime: Long,
     @NotNull val distributionRule: DistributionType,
     @NotNull val destinations: Set<String> = emptySet<String>(),
     @NotNull override val messageId: UUID,
     @NotNull override val messageType: MessageType,
-    @NotNull override val message: String)  : IOrchestratorMessage {
+    @NotNull override val message: String,
+    @JsonIgnore var originalJson: String? = null,
+    @JsonIgnore var eventType: String? = null)  : IOrchestratorMessage {
 
     override fun toEntity(): OrchestratorMessageEntity {
         return OrchestratorMessageEntity(
-            date = now(),
-            status = OrchestratorMessageStatus.SEND,
+            recordedTime = recordedTime,
+            status = OrchestratorMessageStatus.CREATED,
             distributionType = distributionRule,
             destinations = destinations.joinToString(separator = ","),
             messageId = messageId,
             messageType = messageType,
             message = message,
+            originalJSON = originalJson,
+            eventType = eventType
+
         )
     }
 
     companion object {
-        fun build(destinations: Set<OrchestratorEventDestination>, type: MessageType, message: String, messageId: UUID?): IOrchestratorMessage {
+        fun build(recordedTime: Long, destinations: Set<OrchestratorEventDestination>, type: MessageType, message: String, messageId: UUID?, originalJSON: String? = null, fullEvent: String? =null ): IOrchestratorMessage {
             val destinationString = destinations.map{it.destination}.toSet()
 
             val distribution = when {   destinationString.isEmpty () ->  DistributionType.BROADCAST
                                         else -> DistributionType.STATIC
                                     }
-             return OutgoingOrchestratorMessage(distribution, destinationString , messageId?: UUID.randomUUID(), type, message)
+             return OutgoingOrchestratorMessage(recordedTime, distribution, destinationString , messageId?: UUID.randomUUID(), type, message, originalJSON, fullEvent)
         }
     }
 }
 
 data class IncomingOrchestratorMessage (
-
+    @NotNull val recordedTime: Long,
     @NotNull override val messageId: UUID,
     @NotNull override val messageType: MessageType,
     @NotNull override val message: String,
@@ -124,7 +131,7 @@ data class IncomingOrchestratorMessage (
 
     override fun toEntity(): OrchestratorMessageEntity {
         return OrchestratorMessageEntity(
-            date = now(),
+            recordedTime = recordedTime,
             status = OrchestratorMessageStatus.RECEIVED,
             origin = origin,
             messageId = messageId,

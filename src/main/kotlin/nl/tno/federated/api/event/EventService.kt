@@ -46,10 +46,12 @@ import nl.tno.federated.api.event.validation.ShaclValidator
 import nl.tno.federated.api.graphdb.GraphDBService
 import nl.tno.federated.api.orchestrator.OrchestratorService
 import org.springframework.stereotype.Service
+import java.time.Instant
 import java.util.*
 
 
 const val EVENT_UUID_FIELD = "UUID"
+const val EVENT_RECORDEDTIMESTAMP_FIELD = "recordedTime"
 const val EVENT_TYPE_FIELD = "eventType"
 
 @Service
@@ -72,9 +74,8 @@ class EventService(
         val type = eventTypeMapping.getEventType(eventType) ?: throw EventTypeMappingException("EventType not found: $eventType")
         val enrichedEvent = enrichJsonEvent(event, type)
         validateWithShacl(enrichedEvent)
-
-      //  publishRDFEvent(enrichedEvent, eventDestinations)
         graphDBService.insertEvent(enrichedEvent.eventRDF)
+        publishRDFEvent(enrichedEvent, eventDestinations)
         return enrichedEvent
     }
 
@@ -113,6 +114,7 @@ class EventService(
         val uuid = UUID.randomUUID()
         node.put(EVENT_UUID_FIELD, uuid.toString())
         node.put(EVENT_TYPE_FIELD, type.eventType)
+        node.put(EVENT_RECORDEDTIMESTAMP_FIELD, Instant.now().epochSecond)
 
         val rdf = eventMapper.toRDFTurtle(jsonNode = node, rml = type.rml)
 
@@ -120,6 +122,7 @@ class EventService(
         if (type.minimize == true && type.minimalRml != null ) {
             enrichedEvent.strippedEventRDF = eventMapper.toRDFTurtle(jsonNode = node, rml = type.minimalRml)
         }
+        enrichedEvent.eventJson = node.toPrettyString()
         return enrichedEvent
     }
 

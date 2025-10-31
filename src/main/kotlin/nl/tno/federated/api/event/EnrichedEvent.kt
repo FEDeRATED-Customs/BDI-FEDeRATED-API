@@ -29,15 +29,17 @@
 package nl.tno.federated.api.event
 
 import nl.tno.federated.api.event.type.EventType
+import java.time.Instant.now
 import java.util.*
 
 /**
  * Event class containing the original event json, the event type, generated UUID and event RDF.
  */
 data class EnrichedEvent(
-    val eventJson: String,
+    var eventJson: String,
     val eventType: EventType,
     val eventUUID: UUID,
     var eventRDF: String,
-    var strippedEventRDF: String? = null
+    var strippedEventRDF: String? = null,
+    var recordedTime: Long? = now().epochSecond
 )

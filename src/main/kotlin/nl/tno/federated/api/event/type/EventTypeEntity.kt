@@ -48,6 +48,9 @@ data class EventTypeEntity(
     @Column(name = "MINIMAL_RML", nullable = true, columnDefinition = "TEXT")
     val minimalRml: String? = null,
     @Column(name = "MINIMIZE", columnDefinition = "BOOLEAN")
-    val minimize: Boolean? = false
-
+    val minimize: Boolean? = false,
+    @Column(name = "SEARCHQUERY", columnDefinition = "TEXT")
+    val searchQuery: String? = null,
+    @Column(name = "EVENT_LIFETIME", columnDefinition = "BIGINT")
+    val eventLifeTime: Long? = 31556952000 // 1 year in ms default
 )

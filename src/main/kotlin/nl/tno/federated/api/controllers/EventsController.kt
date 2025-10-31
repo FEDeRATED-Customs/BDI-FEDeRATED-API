@@ -61,7 +61,6 @@ const val EVENT_DESTINATION_HEADER = "Event-Destinations"
 @Tag(name = "EventsController", description = "Allows for creation, distribution and retrieval of events. See the /event-types endpoint for all supported event types by this node.")
 class EventsController(
     private val eventService: EventService,
-    private val graphDBService: GraphDBService,
     private val orchestratorService: OrchestratorService
 ) {
 
