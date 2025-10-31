@@ -1,7 +1,9 @@
 /.idea/
 /ui/event-viewer/node_modules/
 /ui/event-viewer/package-lock.json
+/ui/event-viewer/dist/
 /build/
 /.kotlin/
 /FEDeRATED-API.iml
 /.gradle/
+

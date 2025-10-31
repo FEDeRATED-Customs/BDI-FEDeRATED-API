@@ -41,12 +41,15 @@ import com.fasterxml.jackson.module.kotlin.*
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import nl.tno.federated.api.event.EventService
+import nl.tno.federated.api.event.fulleventrequest.FullEventRequestEvent
 import nl.tno.federated.api.graphdb.GraphDBService
 import nl.tno.federated.api.orchestrator.IncomingOrchestratorMessage
 import nl.tno.federated.api.orchestrator.MessageType
+import nl.tno.federated.api.orchestrator.OrchestratorMessageStatus
 import nl.tno.federated.api.orchestrator.OrchestratorService
 import nl.tno.federated.api.util.toJsonNode
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.http.ResponseEntity
@@ -58,7 +61,7 @@ import org.springframework.web.bind.annotation.*
 class OrchestratorController(
     private val orchestratorService: OrchestratorService,
     private val graphDBService: GraphDBService,
-    private val eventService: EventService
+    private val applicationEventPublisher: ApplicationEventPublisher
 ) {
 
     companion object {
@@ -98,30 +101,29 @@ class OrchestratorController(
                     MessageType.EVENT -> {
                         with(orchestratorService.receiveEventMessage(incomingMessage)) {
                             if (!graphDBService.insertEvent(this.eventRDF!!)) {
-                                orchestratorService.updateMessageToInvalid(incomingMessage)
+                                orchestratorService.updateMessageStatus(incomingMessage, OrchestratorMessageStatus.INVALID)
                             }
                         }
                     }
-                    MessageType.QUERY -> {
-                        // check access with dip
-                        with(orchestratorService.receiveQueryMessage(incomingMessage)) {
-
+                    MessageType.FULLEVENT -> {
+                        // check access in the MessageLog
+                        with(orchestratorService.receiveFullEventMessage(incomingMessage)) {
+                            log.info("requested full event data for event with id: {}",this.eventUUID)
+                            val originalMessage = orchestratorService.findMessageById(this.eventUUID.toString())
+                                ?: return ResponseEntity(HttpStatus.NOT_FOUND)
+                            if (originalMessage.status != OrchestratorMessageStatus.SEND || !originalMessage.destination?.contains(incomingMessage.origin)!!)
+                                return ResponseEntity(HttpStatus.UNAUTHORIZED)
+                            log.info("Passed the checks (original message is send to requester), the event will be resend as a full event")
+                            applicationEventPublisher.publishEvent(FullEventRequestEvent(incomingMessage.origin ,this.eventUUID))
                         }
-
-                        // schedule query for running and send result as a new event message
-                       // val queryResult = eventService.queryByEventId(this.eventUUID)
-                    }
-                    MessageType.RESULT -> {
-                        // store result RDF in database
                     }
                 }
         } catch (e: Exception) {
             log.warn("Not processing message {} because: {}",incomingMessage.messageId,e.message )
-            return ResponseEntity(HttpStatus.BAD_REQUEST)
+
         }
         log.warn("processed {}",incomingMessage.messageId )
         return ResponseEntity(HttpStatus.ACCEPTED)
     }
-
 
 }

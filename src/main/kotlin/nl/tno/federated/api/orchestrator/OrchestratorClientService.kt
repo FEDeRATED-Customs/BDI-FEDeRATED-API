@@ -46,13 +46,14 @@ class OrchestratorClientService (private val config : OrchestratorConfig, val ob
 
 
         log.debug("Sending message : {}",message.toJsonNode(objectMapper))
+        val eventMessage = objectMapper.writeValueAsString(message)
         restClient.post()
             .uri("${config.server.toURL("/api/message")}")
             .contentType(MediaType.APPLICATION_JSON)
             .headers {
                it.add("x-api-key",config.server.XApiKey)
             }
-            .body(objectMapper.writeValueAsString(message))
+            .body(eventMessage)
             .retrieve()
             .onStatus(HttpStatusCode::is4xxClientError) { _, response ->
                 log.warn("Sending event to orchestrator: ${config.server} failed with ${response.statusCode}")

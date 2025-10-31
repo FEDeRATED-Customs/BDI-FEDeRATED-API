@@ -15,7 +15,10 @@
   rr:predicateObjectMap [
       rr:predicate <https://ontology.tno.nl/logistics/federated/Event#UUID> ;
       rr:objectMap [ rml:reference "UUID" ]
-    ], [
+    ],[
+        rr:predicate <https://ontology.tno.nl/logistics/federated/Event#recordedTime> ;
+        rr:objectMap [ rml:reference "recordedTime" ]
+    ],[
     rr:predicate <https://ontology.tno.nl/logistics/federated/Event#involvesTimestamp> ;
     rr:objectMap [ rml:reference "involvesTimestamp" ]
     ], [

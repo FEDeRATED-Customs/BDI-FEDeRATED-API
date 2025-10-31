@@ -44,9 +44,13 @@ class EventTypeMapping(
 
     fun addEventType(eventType: EventType) {
         val existing = getEventTypes().firstOrNull { it.eventType.equals(eventType.eventType, true) }
-        if (existing != null) {
+        if (existing != null)
             throw EventTypeMappingException("Existing EventType found with same name: ${eventType.eventType}")
-        }
+        if (eventType.minimize == true && eventType.minimalRml == null)
+            throw EventTypeMappingException("EventType requires a minimalRML if minimize is set to true")
+        if (eventType.minimize == true && eventType.minimalRml != null &&
+            !(eventType.rml.contains("#UUID") && eventType.minimalRml.contains("#UUID")))
+                    throw EventTypeMappingException("EventType requires an UUID for the event in both normal as minimal RML if minimize is enabled.")
         eventTypeService.addEventType(eventType)
     }
 
@@ -91,5 +95,4 @@ class EventTypeMapping(
             ?: throw EventTypeMappingException("EventType not found: ${eventType}")
         eventTypeService.updateEventType(current.copy(minimalRml = minimalRml))
     }
-
 }

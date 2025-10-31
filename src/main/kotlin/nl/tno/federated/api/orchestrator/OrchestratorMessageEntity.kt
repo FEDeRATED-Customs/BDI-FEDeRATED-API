@@ -39,8 +39,8 @@ data class OrchestratorMessageEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
-    @Column(name = "DATE")
-    val date: Instant,
+    @Column(name = "RECORDED_TIME")
+    val recordedTime: Long,
     @Column(name = "STATUS")
     var status: OrchestratorMessageStatus,
     @Column(name = "ORIGIN",nullable = true)
@@ -55,16 +55,24 @@ data class OrchestratorMessageEntity(
     val messageType: MessageType,
     @Column(name = "MESSAGE", columnDefinition="TEXT")
     val message: String,
-) {
+    @Column(name = "ORIGINALJSON", columnDefinition="TEXT")
+    val originalJSON: String? = null,
+    @Column(name = "EVENTTYPE", columnDefinition="TEXT")
+    val eventType: String? = null
+
+
+    ) {
     fun toOrchestratorMessage(): OrchestratorMessage {
         return OrchestratorMessage(
-            date = date,
+            recordedTime = recordedTime,
             status = status,
             origin = origin,
             distributionType = distributionType,
             destination = destinations,
             messageId = messageId,
             messageType = messageType,
-            message = message)
+            message = message,
+            originalJSON = originalJSON,
+            eventType = eventType)
     }
 }

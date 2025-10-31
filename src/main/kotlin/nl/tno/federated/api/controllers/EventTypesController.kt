@@ -104,4 +104,14 @@ class EventTypesController(private val eventTypeMapping: EventTypeMapping) {
     fun updateMinimalRml(@PathVariable type: String, @RequestBody minimalRml: String) {
         eventTypeMapping.updateMinimalRml(type, minimalRml)
     }
+
+    @GetMapping("/{type}/searchQuery", produces = ["text/turtle"])
+    fun getSearchQuery(@PathVariable type: String): String? {
+        return eventTypeMapping.getEventType( type )?.searchQuery
+    }
+
+    @PostMapping("/{type}/searchQuery", consumes = [MediaType.TEXT_PLAIN_VALUE])
+    fun updateSearchQuery(@PathVariable type: String, @RequestBody searchQuery: String) {
+        eventTypeMapping.updateSearchQuery(type, searchQuery)
+    }
 }
