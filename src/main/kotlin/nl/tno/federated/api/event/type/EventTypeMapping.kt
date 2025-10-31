@@ -95,4 +95,11 @@ class EventTypeMapping(
             ?: throw EventTypeMappingException("EventType not found: ${eventType}")
         eventTypeService.updateEventType(current.copy(minimalRml = minimalRml))
     }
+
+    fun updateEventLifeTime(eventType: String, eventLifeTime: Long) {
+        val current = getEventType(eventType)
+            ?: throw EventTypeMappingException("EventType not found: ${eventType}")
+        eventTypeService.updateEventType(current.copy(eventLifeTime = eventLifeTime))
+    }
+
 }

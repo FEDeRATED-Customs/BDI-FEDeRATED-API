@@ -76,7 +76,7 @@ class FullEventRequestService (private val orchestratorRepository: OrchestratorR
                 val dest = destinations.map { OrchestratorEventDestination.parse(it) }.toSet()
 
                 val enrichedEvent = EnrichedEvent(sendEvent.originalJSON, eventType ,sendEvent.messageId, fullRDF)
-                orchestratorService.sendMessage(enrichedEvent,dest,UUID.randomUUID())
+                orchestratorService.sendMessage(enrichedEvent,dest, enrichedEvent.eventUUID)
             }
 
         }

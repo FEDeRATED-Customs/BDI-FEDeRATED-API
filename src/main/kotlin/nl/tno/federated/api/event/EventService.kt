@@ -30,6 +30,7 @@
 package nl.tno.federated.api.event
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.JsonNodeType
 import com.fasterxml.jackson.databind.node.ObjectNode
 import nl.tno.federated.api.event.distribution.orchestrator.OrchestratorEventDestination
@@ -37,6 +38,7 @@ import nl.tno.federated.api.event.distribution.orchestrator.OrchestratorEventDis
 import nl.tno.federated.api.event.mapper.EventMapper
 import nl.tno.federated.api.event.mapper.UnsupportedEventTypeException
 import nl.tno.federated.api.event.query.EventQuery
+import nl.tno.federated.api.event.query.EventQueryService
 import nl.tno.federated.api.event.query.graphdb.GraphDBEventQueryService
 import nl.tno.federated.api.event.type.EventType
 import nl.tno.federated.api.event.type.EventTypeMapping
@@ -44,10 +46,16 @@ import nl.tno.federated.api.event.type.EventTypeMappingException
 import nl.tno.federated.api.event.validation.JSONValidator
 import nl.tno.federated.api.event.validation.ShaclValidator
 import nl.tno.federated.api.graphdb.GraphDBService
+import nl.tno.federated.api.orchestrator.OrchestratorContent
+import nl.tno.federated.api.orchestrator.OrchestratorRepository
 import nl.tno.federated.api.orchestrator.OrchestratorService
+import org.slf4j.LoggerFactory
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import java.time.Instant
+import java.time.Instant.now
 import java.util.*
+import kotlin.collections.ArrayList
 
 
 const val EVENT_UUID_FIELD = "UUID"
@@ -61,9 +69,13 @@ class EventService(
     private val eventDistributionService: OrchestratorEventDistributionService,
     private val eventTypeMapping: EventTypeMapping,
     private val graphDBService: GraphDBService,
-    private val orchestratorService: OrchestratorService
+    private val orchestratorService: OrchestratorService,
+    private val objectMapper: ObjectMapper,
+    private val graphDBEventQueryService: GraphDBEventQueryService
 
-) {
+    ) {
+
+    private val log = LoggerFactory.getLogger(EventService::class.java)
 
     /**
      * Convert the given event to RDF.
@@ -135,4 +147,31 @@ class EventService(
         val dest = destinations?.map { OrchestratorEventDestination.parse(it) }?.toSet()
         return eventDistributionService.distributeEvent(enrichedEvent = enrichedEvent, destinations = dest)
     }
+
+
+    @Scheduled(fixedDelay = 1440_000, initialDelay = 15_000)
+    fun cleanUp() {
+        val eventTypes = eventTypeMapping.getEventTypes()
+        var events = ArrayList<UUID>()
+        eventTypes.forEach{ type ->
+            if (type.eventLifeTime!! > 0) {
+                val cufOff = now().epochSecond - type.eventLifeTime*24*60
+                val messages = orchestratorService.findAllMessagesOfEventTypeBefore(cufOff, type.eventType)
+                messages.forEach { message ->
+                    val content =
+                        objectMapper.readValue(Base64.getDecoder().decode(message.message), OrchestratorContent::class.java)
+                    events.add(content.eventUUID)
+                }
+                orchestratorService.deleteMessages(messages.map{ it.toEntity() } )
+            }
+        }
+        log.info("removed all DOMessages related to the following events : ${events.joinToString(",")}")
+        log.info("starting cleaning process in the GraphDB, removing all events in the above list")
+        // now we have a list of event UUID's (both send and received) that need to be cleaned based on retention times in the eventtypes
+       /* val eventIdsString = events.joinToString(",")
+        val query = " @@eventIds@@".replace("@@eventIds@@", eventIdsString)
+        val result = graphDBEventQueryService.executeQuery(EventQuery(query))
+        log.info("cleaning process result: ${result}")*/
+    }
+
 }
