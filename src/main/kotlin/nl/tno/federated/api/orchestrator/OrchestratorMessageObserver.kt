@@ -52,7 +52,7 @@ class OrchestratorMessageObserver(private val orchestratorService: OrchestratorS
     @Scheduled(fixedDelay = 60_000, initialDelay = 15_000)
     fun observe() {
         try {
-            log.info("Retrieving events for publication since last successful poll interval: {}", lastPoll)
+            log.info("Retrieving events for publication since last successful poll interval: {}", Instant.ofEpochSecond(lastPoll))
             val result = orchestratorService.findEventsIncomingAfter(lastPoll,1, 500, MessageType.EVENT )
             log.info("{} events retrieved from incoming history for publication.", result.size)
 

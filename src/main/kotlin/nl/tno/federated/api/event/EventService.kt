@@ -151,27 +151,36 @@ class EventService(
 
     @Scheduled(fixedDelay = 1440_000, initialDelay = 15_000)
     fun cleanUp() {
+        log.info("Cleanup process waking up ....")
         val eventTypes = eventTypeMapping.getEventTypes()
         var events = ArrayList<UUID>()
-        eventTypes.forEach{ type ->
-            if (type.eventLifeTime!! > 0) {
-                val cufOff = now().epochSecond - type.eventLifeTime*24*60
+        eventTypes.forEach { type ->
+            if (type.eventLifeTime != null && type.eventLifeTime > 0) {
+                val cufOff = now().epochSecond - type.eventLifeTime * 24 * 60
                 val messages = orchestratorService.findAllMessagesOfEventTypeBefore(cufOff, type.eventType)
                 messages.forEach { message ->
                     val content =
-                        objectMapper.readValue(Base64.getDecoder().decode(message.message), OrchestratorContent::class.java)
+                        objectMapper.readValue(
+                            Base64.getDecoder().decode(message.message),
+                            OrchestratorContent::class.java
+                        )
                     events.add(content.eventUUID)
                 }
-                orchestratorService.deleteMessages(messages.map{ it.toEntity() } )
+                log.info("${type.eventType} : ${messages.size} events will be cleaned")
+                orchestratorService.deleteMessages(messages.map { it.toEntity() })
             }
         }
-        log.info("removed all DOMessages related to the following events : ${events.joinToString(",")}")
-        log.info("starting cleaning process in the GraphDB, removing all events in the above list")
-        // now we have a list of event UUID's (both send and received) that need to be cleaned based on retention times in the eventtypes
-       /* val eventIdsString = events.joinToString(",")
-        val query = " @@eventIds@@".replace("@@eventIds@@", eventIdsString)
-        val result = graphDBEventQueryService.executeQuery(EventQuery(query))
-        log.info("cleaning process result: ${result}")*/
+        if (events.size > 0) {
+            log.info("removed all DOMessages related to the following events : ${events.joinToString(",")}")
+
+            // now we have a list of event UUID's (both send and received) that need to be cleaned based on retention times in the eventtypes
+            /* val eventIdsString = events.joinToString(",")
+            val query = " @@eventIds@@".replace("@@eventIds@@", eventIdsString)
+            val result = graphDBEventQueryService.executeQuery(EventQuery(query))
+            log.info("cleaning process result: ${result}")*/
+        } else {
+            log.info("Nothing to clean ... going back to sleep ")
+        }
     }
 
 }
