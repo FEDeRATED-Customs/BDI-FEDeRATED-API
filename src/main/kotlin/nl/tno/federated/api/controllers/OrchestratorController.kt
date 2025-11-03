@@ -40,7 +40,6 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.*
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
-import nl.tno.federated.api.event.EventService
 import nl.tno.federated.api.event.fulleventrequest.FullEventRequestEvent
 import nl.tno.federated.api.graphdb.GraphDBService
 import nl.tno.federated.api.orchestrator.IncomingOrchestratorMessage
@@ -105,7 +104,7 @@ class OrchestratorController(
                             }
                         }
                     }
-                    MessageType.FULLEVENT -> {
+                    MessageType.FULLEVENTREQUEST -> {
                         // check access in the MessageLog
                         with(orchestratorService.receiveFullEventMessage(incomingMessage)) {
                             log.info("requested full event data for event with id: {}",this.eventUUID)

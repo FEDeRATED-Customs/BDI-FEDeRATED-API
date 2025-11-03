@@ -37,7 +37,7 @@ package nl.tno.federated.api.controllers
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import nl.tno.federated.api.event.EventService
-import nl.tno.federated.api.graphdb.GraphDBService
+import nl.tno.federated.api.event.distribution.orchestrator.OrchestratorEventDestination
 import nl.tno.federated.api.orchestrator.OrchestratorService
 import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType
@@ -76,6 +76,21 @@ class EventsController(
     }
 
     @Operation(summary = "Return the event data in compacted JSONLD format.")
+    @GetMapping(path = ["/fullevent/{id}"], produces = [APPLICATION_JSON_VALUE])
+    fun requestFullEventById(@RequestHeader(name = EVENT_DESTINATION_HEADER, required = false) eventDestination: String?, @PathVariable("id") id: String): ResponseEntity<String> {
+        log.info("Request Full event ID: ${id}")
+        val destination = eventDestination?.split(";")?.toSet()
+        if (destination == null) {
+            return ResponseEntity.badRequest().body("Missing required \"Event-Destinations\" header")
+        }
+        if (destination.size > 1) {
+            return ResponseEntity.badRequest().body("Only allowed to request a full event from on destination")
+        }
+        val destinations = destination.map { OrchestratorEventDestination.parse(it) }.toSet()
+        return ResponseEntity.ok(orchestratorService.requestFullEvent(id, destinations).toString())
+    }
+
+    @Operation(summary = "Return the event data in compacted JSONLD format.")
     @GetMapping(path = [""], produces = [APPLICATION_JSON_VALUE])
     fun getEvents(@RequestParam("page", defaultValue = "1") page: Int, @RequestParam("size", defaultValue = "25") size: Int): ResponseEntity<List<String>> {
         log.info("Get all events, page: {}, size: {}", page, size)
@@ -89,6 +104,7 @@ class EventsController(
     fun postEvent(@RequestBody event: String, @RequestHeader(EVENT_TYPE_HEADER) eventType: String, @RequestHeader(name = EVENT_DESTINATION_HEADER, required = false) eventDestinations: String?): ResponseEntity<Void> {
         log.info("Received new event: {}", event)
         val destinations: Set<String>? = eventDestinationsToSet(eventDestinations)
+        destinations?.map { OrchestratorEventDestination.parse(it) }?.toSet()
         val enrichedEvent = eventService.newJsonEvent(event, eventType, destinations)
 
         log.info("New event created with UUID: {}", enrichedEvent.eventUUID)

@@ -55,7 +55,7 @@ class OrchestratorEventDistributionService(
     override fun distributeEvent(enrichedEvent: EnrichedEvent, destinations: Set<OrchestratorEventDestination>?): UUID {
         val destinationSet = destinations ?: runEventDistributionRules(enrichedEvent.eventRDF)
         log.info("Sending eventType: ${enrichedEvent.eventType.eventType} with eventUUID: ${enrichedEvent.eventUUID} to destination(s): ${destinationSet.map { it.destination }}")
-        return orchestratorService.sendMessage(enrichedEvent, destinationSet)
+        return orchestratorService.sendEventMessage(enrichedEvent, destinationSet)
 
     }
 
