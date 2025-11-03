@@ -51,7 +51,7 @@ enum class DistributionType(@JsonValue val type: String) {
 
 enum class MessageType (@JsonValue val type: String) {
     EVENT ("event"),
-    FULLEVENT ("fullevent")
+    FULLEVENTREQUEST ("fullevent")
 }
 
 data class OrchestratorMessage(

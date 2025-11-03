@@ -92,7 +92,7 @@ class OrchestratorService(
         }
     }
 
-    fun sendMessage(enrichedEvent: EnrichedEvent, destinations: Set<OrchestratorEventDestination>, messageId: UUID? = null): UUID {
+    fun sendEventMessage(enrichedEvent: EnrichedEvent, destinations: Set<OrchestratorEventDestination>, messageId: UUID? = null): UUID {
 
         val message = OutgoingOrchestratorMessage.build(
             enrichedEvent.recordedTime ?: now().epochSecond,
@@ -103,6 +103,25 @@ class OrchestratorService(
             enrichedEvent.eventJson,
             enrichedEvent.eventType.eventType
             )
+        addMessage(message)
+        try {
+            httpClientService.sendMessage(message)
+        } catch (x: Exception) {
+            updateMessageStatus(message, OrchestratorMessageStatus.FAILED)
+            throw(x)
+        }
+        updateMessageStatus(message, OrchestratorMessageStatus.SEND)
+        return message.messageId
+    }
+
+    fun requestFullEvent(eventID: String, destinations: Set<OrchestratorEventDestination>): UUID {
+        val message = OutgoingOrchestratorMessage.build(
+            now().epochSecond,
+            destinations,
+            MessageType.FULLEVENTREQUEST,
+            Base64.getEncoder().encodeToString(getOrchestratorFullEventContent(eventID).toByteArray()),
+            UUID.randomUUID()
+        )
         addMessage(message)
         try {
             httpClientService.sendMessage(message)
@@ -213,6 +232,12 @@ class OrchestratorService(
     private fun getOrchestratorContent(event: EnrichedEvent) : String {
         val rdf = if (event.strippedEventRDF != null) event.strippedEventRDF else event.eventRDF
         return objectMapper.writeValueAsString(OrchestratorContent(event.eventUUID, event.eventType.eventType, rdf))
+
+    }
+
+    private fun getOrchestratorFullEventContent(eventId: String) : String {
+
+        return objectMapper.writeValueAsString(OrchestratorFullEventContent(UUID.fromString(eventId)))
 
     }
 
