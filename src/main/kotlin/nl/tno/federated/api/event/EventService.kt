@@ -130,14 +130,27 @@ class EventService(
 
         val rdf = eventMapper.toRDFTurtle(jsonNode = node, rml = type.rml)
 
-        val enrichedEvent = EnrichedEvent(jsonEvent, type, uuid, rdf)
+        val enrichedEvent = EnrichedEvent(jsonEvent, type, uuid, replaceNamespaces(rdf, uuid.toString(), type.eventType))
         if (type.minimize == true && type.minimalRml != null ) {
-            enrichedEvent.strippedEventRDF = eventMapper.toRDFTurtle(jsonNode = node, rml = type.minimalRml)
+            val strippedRdf = eventMapper.toRDFTurtle(jsonNode = node, rml = type.minimalRml)
+
+            enrichedEvent.strippedEventRDF = replaceNamespaces(strippedRdf, uuid.toString(), type.eventType)
         }
         enrichedEvent.eventJson = node.toPrettyString()
         return enrichedEvent
     }
 
+    private fun replaceNamespaces(rdf:String, eventID: String, eventType: String ): String {
+        val regex = Regex("_:[0-9]*")
+        val matches = regex.findAll(rdf)
+        val nameSpaces = matches.map { it.value }.toSet()
+        var enrichedRFD: String = rdf
+        nameSpaces.forEach {
+            enrichedRFD = enrichedRFD.replace(it, "<http://${eventType}/${eventID}/${it.substring(2)}>")
+        }
+        return enrichedRFD
+
+    }
     private fun validateWithShacl(enrichedEvent: EnrichedEvent) {
         val shaclValidator = ShaclValidator(eventTypeMapping.readShaclShapes())
         if (enrichedEvent.eventType.shacl != null) shaclValidator.validate(enrichedEvent.eventRDF)
