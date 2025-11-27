@@ -77,4 +77,3 @@ release_version:
   only:
     variables:
       - $RELEASE_VERSION
-
