@@ -111,7 +111,7 @@ springBoot {
  */
 jib {
     to {
-        val imageName = System.getenv().getOrDefault("IMAGE_NAME", "federatedregistry.azurecr.io/federated/${project.name}")
+        val imageName = System.getenv().getOrDefault("IMAGE_NAME", "federatedregistry.azurecr.io/federated/federated-api")
         val imageTag = System.getenv().getOrDefault("IMAGE_TAG", "develop").replace('/', '-')
         val imageTags = mutableSetOf(imageTag)
         if (System.getenv().containsKey("CI")) {
