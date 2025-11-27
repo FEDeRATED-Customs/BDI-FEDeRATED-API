@@ -27,8 +27,7 @@ build:
   except:
     variables:
       - $RELEASE_VERSION
-  only:
-    - main
+
 
 test:
   stage: test
@@ -48,8 +47,7 @@ test:
   except:
     variables:
       - $RELEASE_VERSION
-  only:
-    - main
+
 
 release:
   stage: release
@@ -63,8 +61,6 @@ release:
   except:
     variables:
       - $RELEASE_VERSION
-  only:
-    - main
 
 release_version:
   stage: release
