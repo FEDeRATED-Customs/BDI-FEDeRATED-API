@@ -134,13 +134,14 @@ class OrchestratorService(
     }
 
     fun receiveEventMessage(message: IncomingOrchestratorMessage): OrchestratorContent {
-        val inserted = addMessage(message)
-        return objectMapper.readValue(Base64.getDecoder().decode(inserted.message),OrchestratorContent::class.java)
+        addMessage(message)
+        return objectMapper.readValue(Base64.getDecoder().decode(message.message),OrchestratorContent::class.java)
     }
 
     fun receiveFullEventMessage(message: IncomingOrchestratorMessage): OrchestratorFullEventContent {
-        val inserted = addMessage(message)
-        return objectMapper.readValue(Base64.getDecoder().decode(inserted.message),OrchestratorFullEventContent::class.java)
+        val newMessage = message.copy(messageId = UUID.randomUUID())
+        addMessage(newMessage)
+        return objectMapper.readValue(Base64.getDecoder().decode(newMessage.message),OrchestratorFullEventContent::class.java)
     }
 
     @Transactional

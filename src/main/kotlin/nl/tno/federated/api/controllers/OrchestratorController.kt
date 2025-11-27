@@ -112,7 +112,7 @@ class OrchestratorController(
                                 ?: return ResponseEntity(HttpStatus.NOT_FOUND)
                             if (originalMessage.status != OrchestratorMessageStatus.SEND || !originalMessage.destination?.contains(incomingMessage.origin)!!)
                                 return ResponseEntity(HttpStatus.UNAUTHORIZED)
-                            log.info("Passed the checks (original message is send to requester), the event will be resend as a full event")
+                            log.debug("Passed the checks (original message is send to requester), the event will be resend as a full event")
                             applicationEventPublisher.publishEvent(FullEventRequestEvent(incomingMessage.origin ,this.eventUUID))
                         }
                     }

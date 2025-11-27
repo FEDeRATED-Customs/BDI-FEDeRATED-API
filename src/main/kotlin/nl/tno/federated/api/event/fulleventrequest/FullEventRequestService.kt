@@ -28,20 +28,16 @@
  */
 package nl.tno.federated.api.event.fulleventrequest
 
-
-import com.fasterxml.jackson.databind.node.JsonNodeType
 import com.fasterxml.jackson.databind.node.ObjectNode
-import nl.tno.federated.api.event.EVENT_TYPE_FIELD
-import nl.tno.federated.api.event.EVENT_UUID_FIELD
 import nl.tno.federated.api.event.EnrichedEvent
 import nl.tno.federated.api.event.distribution.orchestrator.OrchestratorEventDestination
 import nl.tno.federated.api.event.mapper.EventMapper
-import nl.tno.federated.api.event.mapper.UnsupportedEventTypeException
 import nl.tno.federated.api.event.type.EventTypeService
 import nl.tno.federated.api.orchestrator.OrchestratorMessageStatus
 import nl.tno.federated.api.orchestrator.OrchestratorRepository
 import nl.tno.federated.api.orchestrator.OrchestratorService
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEvent
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Service
 import java.util.*
@@ -75,7 +71,7 @@ class FullEventRequestService (private val orchestratorRepository: OrchestratorR
                 val destinations = request.requester.split(";").toSet()
                 val dest = destinations.map { OrchestratorEventDestination.parse(it) }.toSet()
 
-                val enrichedEvent = EnrichedEvent(sendEvent.originalJSON, eventType ,sendEvent.messageId, fullRDF)
+                val enrichedEvent = EnrichedEvent(sendEvent.originalJSON, eventType ,UUID.randomUUID(), fullRDF)
                 orchestratorService.sendEventMessage(enrichedEvent,dest, enrichedEvent.eventUUID)
             }
 
