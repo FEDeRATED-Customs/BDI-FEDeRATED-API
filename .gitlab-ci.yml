@@ -28,7 +28,6 @@ build:
     variables:
       - $RELEASE_VERSION
 
-
 test:
   stage: test
   when: manual
@@ -47,7 +46,6 @@ test:
   except:
     variables:
       - $RELEASE_VERSION
-
 
 release:
   stage: release
