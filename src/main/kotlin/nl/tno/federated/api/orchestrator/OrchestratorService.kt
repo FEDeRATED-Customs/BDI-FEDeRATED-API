@@ -134,14 +134,19 @@ class OrchestratorService(
     }
 
     fun receiveEventMessage(message: IncomingOrchestratorMessage): OrchestratorContent {
-        addMessage(message)
-        return objectMapper.readValue(Base64.getDecoder().decode(message.message),OrchestratorContent::class.java)
+        val content = objectMapper.readValue(Base64.getDecoder().decode(message.message),OrchestratorContent::class.java)
+        val recorded = content.eventRecorded?: now().epochSecond
+        val newMessage = message.copy(recordedTime = recorded, eventType = content.eventType)
+        addMessage(newMessage)
+        return content
     }
 
     fun receiveFullEventMessage(message: IncomingOrchestratorMessage): OrchestratorFullEventContent {
-        val newMessage = message.copy(messageId = UUID.randomUUID())
+        // The DO does not forward the recorded time so we have to add it ourselves
+        val content = objectMapper.readValue(Base64.getDecoder().decode(message.message),OrchestratorFullEventContent::class.java)
+        val newMessage = message.copy(recordedTime = now().epochSecond)
         addMessage(newMessage)
-        return objectMapper.readValue(Base64.getDecoder().decode(newMessage.message),OrchestratorFullEventContent::class.java)
+        return content
     }
 
     @Transactional
