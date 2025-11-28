@@ -91,8 +91,8 @@ data class OutgoingOrchestratorMessage (
     @NotNull override val messageId: UUID,
     @NotNull override val messageType: MessageType,
     @NotNull override val message: String,
-    @JsonIgnore var originalJson: String? = null,
-    @JsonIgnore var eventType: String? = null)  : IOrchestratorMessage {
+    @JsonIgnore val originalJson: String? = null,
+    @JsonIgnore val eventType: String? = null)  : IOrchestratorMessage {
 
     override fun toEntity(): OrchestratorMessageEntity {
         return OrchestratorMessageEntity(
@@ -126,7 +126,8 @@ data class IncomingOrchestratorMessage (
     @NotNull override val messageId: UUID,
     @NotNull override val messageType: MessageType,
     @NotNull override val message: String,
-    @NotNull val origin: String
+    @NotNull val origin: String,
+    val eventType: String?
 ) : IOrchestratorMessage {
 
     override fun toEntity(): OrchestratorMessageEntity {
@@ -136,7 +137,9 @@ data class IncomingOrchestratorMessage (
             origin = origin,
             messageId = messageId,
             messageType = messageType,
-            message = message
+            message = message,
+            eventType = eventType
+
         )
     }
 }

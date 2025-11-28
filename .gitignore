@@ -7,3 +7,5 @@
 /FEDeRATED-API.iml
 /.gradle/
 
+/org.eclipse.dash.licenses.jar
+/package-lock.json
