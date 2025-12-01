@@ -255,4 +255,10 @@ class OrchestratorService(
         orchestratorRepository.deleteAll(messages)
     }
 
+    @Transactional
+    fun deleteByRecordedTimeLessThanAndEventType(cutOff: Long, eventType: String) {
+        orchestratorRepository.deleteByRecordedTimeLessThanAndEventType(cutOff,eventType)
+    }
+
+
 }

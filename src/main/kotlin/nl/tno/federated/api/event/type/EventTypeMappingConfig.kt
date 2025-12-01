@@ -43,7 +43,7 @@ class EventTypeMappingConfig(val types: List<Type>) {
         var schemaDefinition: String? = null
         var minimalRml: String? = null
         var minimize: Boolean? = false
-        var eventLifeTime: Long? = 0
+        var eventLifeTime: Long? = 60
 
 
         private val resourceLoader = DefaultResourceLoader()

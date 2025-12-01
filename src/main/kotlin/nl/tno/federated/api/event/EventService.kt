@@ -162,38 +162,72 @@ class EventService(
     }
 
 
-    @Scheduled(fixedDelay = 1440_000, initialDelay = 15_000)
+    @Scheduled(fixedDelay = 1440_000, initialDelay = 0)
     fun cleanUp() {
         log.info("Cleanup process waking up ....")
         val eventTypes = eventTypeMapping.getEventTypes()
-        var events = ArrayList<UUID>()
         eventTypes.forEach { type ->
+            val events = ArrayList<String>()
             if (type.eventLifeTime != null && type.eventLifeTime > 0) {
-                val cufOff = now().epochSecond - type.eventLifeTime * 24 * 60
-                val messages = orchestratorService.findAllMessagesOfEventTypeBefore(cufOff, type.eventType)
+                val cutOff = now().epochSecond - type.eventLifeTime * 24 * 60 * 60
+                val messages = orchestratorService.findAllMessagesOfEventTypeBefore(cutOff, type.eventType)
                 messages.forEach { message ->
                     val content =
                         objectMapper.readValue(
                             Base64.getDecoder().decode(message.message),
                             OrchestratorContent::class.java
                         )
-                    events.add(content.eventUUID)
+                    events.add("${content.eventType}/${content.eventUUID}/")
                 }
                 log.info("${type.eventType} : ${messages.size} events will be cleaned")
-                orchestratorService.deleteMessages(messages.map { it.toEntity() })
+                if (events.size > 0) {
+                    // now we have a list of event UUID's (both send and received) that need to be cleaned based on retention times in the eventtypes
+                    log.debug("removed all DOMessages related to the following events : ${events.joinToString(",")}")
+                    for (event in events) {
+                        val query = """PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+DELETE {
+    ?x ?y ?z .
+}
+WHERE {
+    {
+        SELECT ?s1 ?p1 ?o1
+        WHERE {
+            {
+                SELECT DISTINCT (str(?s) as ?s_str)
+                WHERE {
+                    ?s a <https://ontology.tno.nl/logistics/federated/Event#Event> .
+                    ?s ?p ?o .
+                    FILTER(isIRI(?o))
+                    FILTER regex(STR(?s),"${event}")
+                    FILTER(?p != rdf:type)
+                }
+            }
+            ?s1 ?p1 ?o1 .
+            FILTER(SUBSTR(STR(?s1),3,STRLEN(STR(?s1))-3)=SUBSTR(?s_str,3,STRLEN(?s_str)-3))
+            FILTER regex(STR(?s1),"${event}")
+            FILTER(?p1!=rdf:type)
+        }
+    }
+    
+    ?x ?y ?z .
+    FILTER(?x = ?s1 || ?z = ?o1)
+    FILTER regex(STR(?x),"${event}")
+
+}
+
+"""
+                        graphDBEventQueryService.deleteQuery(EventQuery(query))
+                        log.info("removed ${event} from the GraphDB")
+                    }
+                } else {
+                    log.info("Nothing to clean for eventType ${type.eventType}.")
+                }
+                orchestratorService.deleteByRecordedTimeLessThanAndEventType(cutOff, type.eventType)
             }
         }
-        if (events.size > 0) {
-            log.info("removed all DOMessages related to the following events : ${events.joinToString(",")}")
+        log.info("All done, going back to sleep .... zzzzzzzz.")
 
-            // now we have a list of event UUID's (both send and received) that need to be cleaned based on retention times in the eventtypes
-            /* val eventIdsString = events.joinToString(",")
-            val query = " @@eventIds@@".replace("@@eventIds@@", eventIdsString)
-            val result = graphDBEventQueryService.executeQuery(EventQuery(query))
-            log.info("cleaning process result: ${result}")*/
-        } else {
-            log.info("Nothing to clean ... going back to sleep ")
-        }
     }
 
 }

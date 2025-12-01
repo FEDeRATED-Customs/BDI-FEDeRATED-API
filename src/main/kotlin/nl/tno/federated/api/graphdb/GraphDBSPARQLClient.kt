@@ -40,7 +40,7 @@ import org.springframework.stereotype.Service
 @Service
 class GraphDBSPARQLClient(graphDBConfig: GraphDBConfig) {
 
-    private val repository = SPARQLRepository(graphDBConfig.toConnectURL())
+    private val repository = SPARQLRepository(graphDBConfig.toConnectURL(), graphDBConfig.toUpdateURL())
 
     fun executeSPARQL(eventQuery: EventQuery): String {
         return repository.connection.use { it ->
@@ -52,4 +52,9 @@ class GraphDBSPARQLClient(graphDBConfig: GraphDBConfig) {
             sw.toString()
         }
     }
+
+    fun deleteSPARQL(eventQuery: EventQuery) {
+         repository.connection.prepareUpdate(eventQuery.query).execute()
+    }
+
 }
