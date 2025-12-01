@@ -34,6 +34,7 @@ import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.repository.PagingAndSortingRepository
 import org.springframework.stereotype.Repository
+import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import java.util.*
 
@@ -52,4 +53,8 @@ interface OrchestratorRepository : JpaRepository<OrchestratorMessageEntity, Long
     fun findByRecordedTimeLessThanAndEventType(recordedTime: Long, eventType: String): List<OrchestratorMessageEntity>
 
     fun findByStatusIn(status: List<OrchestratorMessageStatus>,pageable: Pageable): Page<OrchestratorMessageEntity>
+
+    fun deleteByRecordedTimeLessThanAndEventType(recordedTime: Long, eventType: String)
 }
+
+

@@ -47,4 +47,8 @@ class GraphDBConfig (val triplestore : Triplestore) {
     fun toConnectURL(): String {
         return triplestore.protocol + "://" + triplestore.host + ":" + triplestore.port + "/repositories/" + triplestore.repository
     }
+
+    fun toUpdateURL(): String {
+        return triplestore.protocol + "://" + triplestore.host + ":" + triplestore.port + "/repositories/" + triplestore.repository + "/statements"
+    }
 }

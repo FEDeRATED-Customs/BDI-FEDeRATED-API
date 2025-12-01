@@ -37,5 +37,5 @@ data class EventType(
     val schemaDefinition: String? = null,
     val minimalRml: String? = null,
     val minimize: Boolean? = false,
-    val eventLifeTime: Long? = 0
+    val eventLifeTime: Long? = 60
 )

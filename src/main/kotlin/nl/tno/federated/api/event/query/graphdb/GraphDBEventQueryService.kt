@@ -40,4 +40,8 @@ class GraphDBEventQueryService(private val graphDBSPARQLClient: GraphDBSPARQLCli
        return  graphDBSPARQLClient.executeSPARQL(eventQuery)
     }
 
+    fun deleteQuery(eventQuery: EventQuery): Unit? {
+        return  graphDBSPARQLClient.deleteSPARQL(eventQuery)
+    }
+
 }
