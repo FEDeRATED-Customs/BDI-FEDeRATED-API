@@ -1,0 +1,79 @@
+image: gradle:8.5-jdk17
+
+stages:
+  - build
+  - test
+  - release
+
+services:
+  - docker:19.03.1-dind
+
+variables:
+  DOCKER_TLS_CERTDIR: "/certs"
+  GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+
+before_script:
+  - export GRADLE_USER_HOME=/cache/.gradle
+  - mkdir -p $HOME/.docker/
+  - echo "$CONFIG_JSON" > "$HOME/.docker/config.json"
+
+build:
+  services: []
+  stage: build
+  tags:
+    - k8s
+  script:
+    - gradle --build-cache --parallel clean assemble testClasses
+  except:
+    variables:
+      - $RELEASE_VERSION
+  only:
+    - main
+
+test:
+  stage: test
+  when: manual
+  tags:
+    - k8s
+  variables:
+    DOCKER_HOSTNAME: docker
+  script:
+    - gradle --build-cache test
+  artifacts:
+    paths:
+      - "*/build/test-results/*/TEST-*.xml"
+    reports:
+      junit:
+        - "*/build/test-results/*/TEST-*.xml"
+  except:
+    variables:
+      - $RELEASE_VERSION
+  only:
+    - main
+
+release:
+  stage: release
+  tags:
+    - k8s
+  variables:
+    IMAGE_TAG: $CI_COMMIT_REF_NAME
+
+  script:
+    - gradle --build-cache jib
+  except:
+    variables:
+      - $RELEASE_VERSION
+  only:
+    - main
+
+release_version:
+  stage: release
+  tags:
+    - k8s
+  variables:
+    IMAGE_TAG: $RELEASE_VERSION
+  script:
+    - gradle --build-cache jib
+  only:
+    variables:
+      - $RELEASE_VERSION
