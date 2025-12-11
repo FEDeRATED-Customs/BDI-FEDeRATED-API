@@ -13,7 +13,6 @@ CREATE TABLE IF NOT EXISTS API_WEBHOOK
 CREATE TABLE IF NOT EXISTS API_ORCHESTRATOR_MESSAGE
 (
     ID                          BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    DATE                        TIMESTAMP WITH TIME ZONE NOT NULL,
     STATUS                      smallint NOT NULL,
     DISTRIBUTION_TYPE           smallint ,
     ORIGIN                      TEXT,
